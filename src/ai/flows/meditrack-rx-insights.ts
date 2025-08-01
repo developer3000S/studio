@@ -64,8 +64,8 @@ const meditrackRxInsightsFlow = ai.defineFlow(
       prompt: prompt.prompt,
       input: input,
       output: {
-        schema: MeditrackRxInsightsOutputSchema
-      }
+        schema: MeditrackRxInsightsOutputSchema,
+      },
     });
     return output!;
   }
