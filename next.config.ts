@@ -18,9 +18,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  env: {
-    GEMINI_API_KEY: "AIzaSyD_ZoRDvFjMED11rZ9yIWggi6KbpA0cYMg",
-  }
 };
 
 export default nextConfig;
