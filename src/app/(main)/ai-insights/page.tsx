@@ -29,31 +29,19 @@ export default function AIInsightsPage() {
     const { toast } = useToast();
 
     const getInsights = async () => {
+        console.log('getInsights called');
         setIsLoading(true);
         setError('');
         setSummary('');
 
         try {
-            // Temporarily call the simple test function for debugging
+            console.log('Calling simpleTest...');
             const result = await simpleTest("the sun");
+            console.log('simpleTest result:', result);
             setSummary(result);
 
-            // Original complex call - commented out for now
-            // const patientData = toCSV(patients, ['id', 'fio', 'birthYear', 'diagnosis', 'attendingDoctor']);
-            // const medicineData = toCSV(medicines, ['id', 'smmnNodeCode', 'section', 'standardizedMnn', 'tradeNameVk', 'standardizedDosageForm', 'standardizedDosage', 'characteristic', 'packaging', 'price']);
-            // const prescriptionData = toCSV(prescriptions, ['id', 'patientId', 'medicineId', 'dailyDose', 'annualRequirement']);
-            // const dispensationData = toCSV(dispensations, ['id', 'patientId', 'medicineId', 'dispensationDate', 'quantity']);
-
-            // const result = await meditrackRxInsights({
-            //     patientData,
-            //     medicineData,
-            //     prescriptionData,
-            //     dispensationData,
-            // });
-
-            // setSummary(result.summary);
         } catch (e) {
-            console.error(e);
+            console.error('Error in getInsights:', e);
             setError('Не удалось получить AI-аналитику. Попробуйте позже.');
              toast({
                 variant: "destructive",
@@ -61,6 +49,7 @@ export default function AIInsightsPage() {
                 description: "Не удалось получить AI-аналитику. Попробуйте позже.",
             });
         } finally {
+            console.log('getInsights finished');
             setIsLoading(false);
         }
     };

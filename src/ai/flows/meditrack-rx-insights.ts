@@ -13,10 +13,19 @@ import {z} from 'genkit';
 
 // Temporary simple flow for debugging
 export async function simpleTest(subject: string): Promise<string> {
-  const {output} = await ai.generate({
-      prompt: `Tell me a fun fact about ${subject}. Be very brief.`,
-  });
-  return output?.text ?? 'No response';
+  console.log('Entering simpleTest flow with subject:', subject);
+  try {
+    const {output} = await ai.generate({
+        prompt: `Tell me a fun fact about ${subject}. Be very brief.`,
+    });
+    const responseText = output?.text ?? 'No response';
+    console.log('ai.generate successful, response:', responseText);
+    return responseText;
+  } catch (e) {
+    console.error('Error in simpleTest flow:', e);
+    // Re-throw the error to be caught by the client
+    throw new Error('AI generation failed in simpleTest flow');
+  }
 }
 
 
@@ -68,8 +77,11 @@ const meditrackRxInsightsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await ai.generate({
-      prompt: prompt,
+      prompt: prompt.prompt,
       input: input,
+      output: {
+        schema: MeditrackRxInsightsOutputSchema
+      }
     });
     return output!;
   }
