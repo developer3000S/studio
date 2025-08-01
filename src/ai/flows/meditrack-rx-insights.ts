@@ -49,7 +49,7 @@ const prompt = ai.definePrompt({
   Dispensation Data:
   {{dispensationData}}
 
-  Summary:`,,
+  Summary:`,
 });
 
 const meditrackRxInsightsFlow = ai.defineFlow(
