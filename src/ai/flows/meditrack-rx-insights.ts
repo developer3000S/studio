@@ -61,7 +61,8 @@ const meditrackRxInsightsFlow = ai.defineFlow(
   async input => {
     const {output} = await ai.generate({
       model: googleAI.model('gemini-pro'),
-      prompt: prompt.compile(input),
+      prompt: prompt,
+      input: input,
       output: {
         schema: MeditrackRxInsightsOutputSchema
       }
