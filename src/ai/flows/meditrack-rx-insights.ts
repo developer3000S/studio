@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {mistral} from 'genkitx-mistral';
 
 const MeditrackRxInsightsInputSchema = z.object({
   patientData: z.string().describe('Patient data in CSV format.'),
@@ -60,7 +59,6 @@ const meditrackRxInsightsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await ai.generate({
-      model: mistral('mistral/mistral-large-latest'),
       prompt: prompt.compile(input),
       output: {
         schema: MeditrackRxInsightsOutputSchema

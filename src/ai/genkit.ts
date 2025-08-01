@@ -3,9 +3,7 @@ import {mistral} from 'genkitx-mistral';
 
 export const ai = genkit({
   plugins: [
-    mistral({
-      apiKey: process.env.MISTRAL_API_KEY,
-    }),
   ],
+  logLevel: 'debug',
   models: [],
 });
