@@ -11,6 +11,15 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+// Temporary simple flow for debugging
+export async function simpleTest(subject: string): Promise<string> {
+  const {output} = await ai.generate({
+      prompt: `Tell me a fun fact about ${subject}. Be very brief.`,
+  });
+  return output?.text ?? 'No response';
+}
+
+
 const MeditrackRxInsightsInputSchema = z.object({
   patientData: z.string().describe('Patient data in CSV format.'),
   medicineData: z.string().describe('Medicine data in CSV format.'),

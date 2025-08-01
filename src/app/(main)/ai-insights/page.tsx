@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
 import { useState } from "react";
-import { meditrackRxInsights } from "@/ai/flows/meditrack-rx-insights";
+import { meditrackRxInsights, simpleTest } from "@/ai/flows/meditrack-rx-insights";
 import { useAppContext } from "@/context/AppContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -34,19 +34,24 @@ export default function AIInsightsPage() {
         setSummary('');
 
         try {
-            const patientData = toCSV(patients, ['id', 'fio', 'birthYear', 'diagnosis', 'attendingDoctor']);
-            const medicineData = toCSV(medicines, ['id', 'smmnNodeCode', 'section', 'standardizedMnn', 'tradeNameVk', 'standardizedDosageForm', 'standardizedDosage', 'characteristic', 'packaging', 'price']);
-            const prescriptionData = toCSV(prescriptions, ['id', 'patientId', 'medicineId', 'dailyDose', 'annualRequirement']);
-            const dispensationData = toCSV(dispensations, ['id', 'patientId', 'medicineId', 'dispensationDate', 'quantity']);
+            // Temporarily call the simple test function for debugging
+            const result = await simpleTest("the sun");
+            setSummary(result);
 
-            const result = await meditrackRxInsights({
-                patientData,
-                medicineData,
-                prescriptionData,
-                dispensationData,
-            });
+            // Original complex call - commented out for now
+            // const patientData = toCSV(patients, ['id', 'fio', 'birthYear', 'diagnosis', 'attendingDoctor']);
+            // const medicineData = toCSV(medicines, ['id', 'smmnNodeCode', 'section', 'standardizedMnn', 'tradeNameVk', 'standardizedDosageForm', 'standardizedDosage', 'characteristic', 'packaging', 'price']);
+            // const prescriptionData = toCSV(prescriptions, ['id', 'patientId', 'medicineId', 'dailyDose', 'annualRequirement']);
+            // const dispensationData = toCSV(dispensations, ['id', 'patientId', 'medicineId', 'dispensationDate', 'quantity']);
 
-            setSummary(result.summary);
+            // const result = await meditrackRxInsights({
+            //     patientData,
+            //     medicineData,
+            //     prescriptionData,
+            //     dispensationData,
+            // });
+
+            // setSummary(result.summary);
         } catch (e) {
             console.error(e);
             setError('Не удалось получить AI-аналитику. Попробуйте позже.');
