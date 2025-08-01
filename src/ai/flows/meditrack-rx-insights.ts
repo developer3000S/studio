@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 
 const MeditrackRxInsightsInputSchema = z.object({
   patientData: z.string().describe('Patient data in CSV format.'),
@@ -59,6 +60,7 @@ const meditrackRxInsightsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await ai.generate({
+      model: googleAI.model('gemini-pro'),
       prompt: prompt.compile(input),
       output: {
         schema: MeditrackRxInsightsOutputSchema
