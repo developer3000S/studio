@@ -25,23 +25,31 @@ export default function AIInsightsPage() {
     const [summary, setSummary] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [logs, setLogs] = useState<string[]>([]);
     const { patients, medicines, prescriptions, dispensations } = useAppContext();
     const { toast } = useToast();
 
+    const addLog = (message: string) => {
+        setLogs(prevLogs => [...prevLogs, `[${new Date().toLocaleTimeString()}] ${message}`]);
+    }
+
     const getInsights = async () => {
-        console.log('getInsights called');
         setIsLoading(true);
         setError('');
         setSummary('');
+        setLogs([]);
+        
+        addLog('Начало генерации аналитики...');
 
         try {
-            console.log('Calling simpleTest...');
+            addLog('Вызов simpleTest с параметром "the sun"...');
             const result = await simpleTest("the sun");
-            console.log('simpleTest result:', result);
+            addLog(`simpleTest успешно выполнен. Результат: ${result}`);
             setSummary(result);
 
-        } catch (e) {
-            console.error('Error in getInsights:', e);
+        } catch (e: any) {
+            const errorMessage = e instanceof Error ? e.message : String(e);
+            addLog(`Произошла ошибка: ${errorMessage}`);
             setError('Не удалось получить AI-аналитику. Попробуйте позже.');
              toast({
                 variant: "destructive",
@@ -49,7 +57,7 @@ export default function AIInsightsPage() {
                 description: "Не удалось получить AI-аналитику. Попробуйте позже.",
             });
         } finally {
-            console.log('getInsights finished');
+            addLog('Процесс генерации завершен.');
             setIsLoading(false);
         }
     };
@@ -67,7 +75,7 @@ export default function AIInsightsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {isLoading ? (
+                    {isLoading && !summary && !error ? (
                         <div className="space-y-2">
                             <Skeleton className="h-4 w-full" />
                             <Skeleton className="h-4 w-full" />
@@ -95,6 +103,19 @@ export default function AIInsightsPage() {
                     </Button>
                 </CardFooter>
             </Card>
+
+            {logs.length > 0 && (
+                <Card className="max-w-2xl mx-auto mt-4">
+                    <CardHeader>
+                        <CardTitle>Логи выполнения</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <pre className="bg-muted p-4 rounded-md text-xs whitespace-pre-wrap break-all">
+                            {logs.join('\n')}
+                        </pre>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }
