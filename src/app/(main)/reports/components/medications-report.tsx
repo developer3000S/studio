@@ -19,6 +19,9 @@ import { Input } from '@/components/ui/input';
 export function MedicationsReport() {
   const { medicines, prescriptions } = useAppContext();
   const [mnnFilter, setMnnFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 15;
+
 
   const reportData = useMemo(() => {
     return medicines.map(med => {
@@ -36,11 +39,23 @@ export function MedicationsReport() {
   }, [medicines, prescriptions]);
   
   const filteredData = useMemo(() => {
+      setPage(1); // Reset page to 1 when filters change
       return reportData.filter(item => {
           const mnnMatch = mnnFilter ? item.standardizedMnn.toLowerCase().includes(mnnFilter.toLowerCase()) : true;
           return mnnMatch;
       })
   }, [reportData, mnnFilter]);
+
+  const pageCount = useMemo(() => {
+    return Math.ceil(filteredData.length / rowsPerPage);
+  }, [filteredData, rowsPerPage]);
+
+  const paginatedData = useMemo(() => {
+      const start = (page - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      return filteredData.slice(start, end);
+  },[filteredData, page, rowsPerPage]);
+
 
   const handleExport = () => {
     const headers = [
@@ -120,9 +135,9 @@ export function MedicationsReport() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.length > 0 ? filteredData.map((item, index) => (
+              {paginatedData.length > 0 ? paginatedData.map((item, index) => (
                 <TableRow key={item.id}>
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{(page - 1) * rowsPerPage + index + 1}</TableCell>
                   <TableCell>{item.smmnNodeCode}</TableCell>
                   <TableCell>{item.section}</TableCell>
                   <TableCell>{item.standardizedMnn}</TableCell>
@@ -143,6 +158,31 @@ export function MedicationsReport() {
             </TableBody>
           </Table>
         </div>
+        {pageCount > 1 && (
+            <div className="flex items-center justify-between py-4 print:hidden">
+                <div className="text-sm text-muted-foreground">
+                    Страница {page} из {pageCount}
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                        disabled={page === 1}
+                    >
+                        Назад
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(prev => Math.min(prev + 1, pageCount))}
+                        disabled={page === pageCount}
+                    >
+                        Вперед
+                    </Button>
+                </div>
+            </div>
+        )}
       </CardContent>
     </Card>
   );

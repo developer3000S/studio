@@ -26,6 +26,9 @@ export function PrescriptionsReport() {
   const [doctorFilter, setDoctorFilter] = useState('');
   const [medicineFilter, setMedicineFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 15;
+
 
   const reportData = useMemo(() => {
     return prescriptions.map(p => {
@@ -50,6 +53,7 @@ export function PrescriptionsReport() {
   }, [patients, medicines, prescriptions, dispensations]);
   
   const filteredData = useMemo(() => {
+      setPage(1);
       return reportData.filter(item => {
           const patientMatch = patientFilter ? item.patientName.toLowerCase().includes(patientFilter.toLowerCase()) : true;
           const doctorMatch = doctorFilter ? item.doctor.toLowerCase().includes(doctorFilter.toLowerCase()) : true;
@@ -61,6 +65,16 @@ export function PrescriptionsReport() {
           return patientMatch && doctorMatch && medicineMatch && statusMatch;
       })
   }, [reportData, patientFilter, doctorFilter, medicineFilter, statusFilter]);
+
+  const pageCount = useMemo(() => {
+    return Math.ceil(filteredData.length / rowsPerPage);
+  }, [filteredData, rowsPerPage]);
+
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return filteredData.slice(start, end);
+  }, [filteredData, page, rowsPerPage]);
 
   const handleExport = () => {
     const headers = [
@@ -147,7 +161,7 @@ export function PrescriptionsReport() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.length > 0 ? filteredData.map(item => (
+              {paginatedData.length > 0 ? paginatedData.map(item => (
                 <TableRow key={item.id}>
                   <TableCell>
                       <div className="font-bold">{item.patientName}</div>
@@ -179,6 +193,31 @@ export function PrescriptionsReport() {
             </TableBody>
           </Table>
         </div>
+        {pageCount > 1 && (
+            <div className="flex items-center justify-between py-4 print:hidden">
+                <div className="text-sm text-muted-foreground">
+                    Страница {page} из {pageCount}
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                        disabled={page === 1}
+                    >
+                        Назад
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(prev => Math.min(prev + 1, pageCount))}
+                        disabled={page === pageCount}
+                    >
+                        Вперед
+                    </Button>
+                </div>
+            </div>
+        )}
       </CardContent>
     </Card>
   );
