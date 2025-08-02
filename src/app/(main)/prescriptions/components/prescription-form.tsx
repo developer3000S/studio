@@ -16,14 +16,13 @@ import { z } from 'zod';
 import type { Prescription } from '@/types';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 
 
 interface PrescriptionFormProps {
@@ -105,6 +104,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
              Выберите пациента, медикамент и укажите суточную дозу.
           </DialogDescription>
         </DialogHeader>
+        <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <ScrollArea className="max-h-[70vh]">
           <div className="grid gap-4 py-4 px-2">
@@ -112,7 +112,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
               control={control}
               name="patientId"
               render={({ field }) => (
-                <FormItem className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4 space-y-0">
+                <FormItem className="flex flex-col md:grid md:grid-cols-4 md:items-center gap-2">
                   <FormLabel className="md:text-right">Пациент</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -121,7 +121,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-full justify-between",
+                            "w-full justify-between md:col-span-3",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -173,7 +173,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
               control={control}
               name="medicineId"
               render={({ field }) => (
-                 <FormItem className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4 space-y-0">
+                 <FormItem className="flex flex-col md:grid md:grid-cols-4 md:items-center gap-2">
                   <FormLabel className="md:text-right">Медикамент</FormLabel>
                    <Popover>
                     <PopoverTrigger asChild>
@@ -182,7 +182,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-full justify-between",
+                            "w-full justify-between md:col-span-3",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -234,7 +234,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
                 control={control}
                 name="dailyDose"
                 render={({ field }) => (
-                    <FormItem className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4 space-y-0">
+                    <FormItem className="flex flex-col md:grid md:grid-cols-4 md:items-center gap-2">
                         <FormLabel className="md:text-right">Суточная доза</FormLabel>
                         <div className="md:col-span-3">
                             <FormControl>
@@ -251,7 +251,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
                 )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4">
+            <div className="flex flex-col md:grid md:grid-cols-4 md:items-center gap-2">
                 <Label className="md:text-right">Годовая потребность</Label>
                 <div className="md:col-span-3">
                     <Input value={calculateAnnualRequirement().toFixed(2) + ' уп.'} disabled />
@@ -265,6 +265,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
             <Button type="submit">Сохранить</Button>
           </DialogFooter>
         </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

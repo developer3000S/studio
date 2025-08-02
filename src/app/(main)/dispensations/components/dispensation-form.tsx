@@ -20,7 +20,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import React from 'react';
@@ -94,6 +94,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
              Выберите пациента, медикамент и укажите детали выдачи.
           </DialogDescription>
         </DialogHeader>
+        <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <ScrollArea className="max-h-[70vh]">
           <div className="grid gap-4 py-4 px-2">
@@ -101,7 +102,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
               control={control}
               name="patientId"
               render={({ field }) => (
-                <FormItem className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4 space-y-0">
+                <FormItem className="flex flex-col md:grid md:grid-cols-4 md:items-center gap-2">
                   <FormLabel className="md:text-right">Пациент</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -110,7 +111,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-full justify-between",
+                            "w-full justify-between md:col-span-3",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -162,7 +163,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
               control={control}
               name="medicineId"
               render={({ field }) => (
-                 <FormItem className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4 space-y-0">
+                 <FormItem className="flex flex-col md:grid md:grid-cols-4 md:items-center gap-2">
                   <FormLabel className="md:text-right">Медикамент</FormLabel>
                    <Popover>
                     <PopoverTrigger asChild>
@@ -172,7 +173,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                           role="combobox"
                           disabled={!selectedPatientId}
                           className={cn(
-                            "w-full justify-between",
+                            "w-full justify-between md:col-span-3",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -224,7 +225,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
               control={control}
               name="dispensationDate"
               render={({ field }) => (
-                <FormItem className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4 space-y-0">
+                <FormItem className="flex flex-col md:grid md:grid-cols-4 md:items-center gap-2">
                   <FormLabel className="md:text-right">Дата выдачи</FormLabel>
                    <Popover>
                       <PopoverTrigger asChild>
@@ -232,7 +233,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                           <Button
                           variant={"outline"}
                           className={cn(
-                              "w-full justify-start text-left font-normal",
+                              "w-full justify-start text-left font-normal md:col-span-3",
                               !field.value && "text-muted-foreground"
                           )}
                           >
@@ -259,9 +260,9 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                 control={control}
                 name="quantity"
                 render={({ field }) => (
-                    <FormItem className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4 space-y-0">
+                    <FormItem className="flex flex-col md:grid md:grid-cols-4 md:items-center gap-2">
                         <FormLabel className="md:text-right">Количество (уп.)</FormLabel>
-                        <FormControl>
+                        <FormControl className="md:col-span-3">
                             <Input type="number" step="1" {...field} />
                         </FormControl>
                         <FormMessage className="md:col-start-2 md:col-span-3" />
@@ -276,6 +277,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
             <Button type="submit">Сохранить</Button>
           </DialogFooter>
         </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
