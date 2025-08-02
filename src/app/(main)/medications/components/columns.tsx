@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { MedicationForm } from './medication-form';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
@@ -30,8 +30,14 @@ import {
 const ActionsCell = ({ medicine }: { medicine: Medicine }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const { deleteMedicine } = useAppContext();
+  const { deleteMedicine, prescriptions, dispensations } = useAppContext();
   const { toast } = useToast();
+
+   const relatedDataCounts = useMemo(() => {
+    const relatedPrescriptions = prescriptions.filter(p => p.medicineId === medicine.id).length;
+    const relatedDispensations = dispensations.filter(d => d.medicineId === medicine.id).length;
+    return { relatedPrescriptions, relatedDispensations };
+  }, [medicine.id, prescriptions, dispensations]);
 
   const handleDelete = () => {
     deleteMedicine(medicine.id);
@@ -75,7 +81,16 @@ const ActionsCell = ({ medicine }: { medicine: Medicine }) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
             <AlertDialogDescription>
-               Это действие невозможно отменить. Это приведет к удалению медикамента и всех связанных с ним назначений и выдач.
+               <p>Это действие невозможно отменить. Это приведет к удалению медикамента и всех связанных с ним данных.</p>
+                {(relatedDataCounts.relatedPrescriptions > 0 || relatedDataCounts.relatedDispensations > 0) && (
+                <div className="mt-2 p-2 bg-destructive/10 border border-destructive/20 rounded-md text-destructive text-sm">
+                    <p className="font-bold">Будут также удалены:</p>
+                    <ul className="list-disc pl-5">
+                       {relatedDataCounts.relatedPrescriptions > 0 && <li>Назначения: {relatedDataCounts.relatedPrescriptions}</li>}
+                       {relatedDataCounts.relatedDispensations > 0 && <li>Выдачи: {relatedDataCounts.relatedDispensations}</li>}
+                    </ul>
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

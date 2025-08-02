@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PatientForm } from './patient-form';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
@@ -31,8 +31,14 @@ import {
 const ActionsCell = ({ patient }: { patient: Patient }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const { deletePatient } = useAppContext();
+  const { deletePatient, prescriptions, dispensations } = useAppContext();
   const { toast } = useToast();
+
+  const relatedDataCounts = useMemo(() => {
+    const relatedPrescriptions = prescriptions.filter(p => p.patientId === patient.id).length;
+    const relatedDispensations = dispensations.filter(d => d.patientId === patient.id).length;
+    return { relatedPrescriptions, relatedDispensations };
+  }, [patient.id, prescriptions, dispensations]);
 
   const handleDelete = () => {
     deletePatient(patient.id);
@@ -77,7 +83,16 @@ const ActionsCell = ({ patient }: { patient: Patient }) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
             <AlertDialogDescription>
-              Это действие невозможно отменить. Это приведет к удалению пациента и всех связанных с ним назначений и выдач.
+              <p>Это действие невозможно отменить. Это приведет к удалению пациента и всех связанных с ним данных.</p>
+              {(relatedDataCounts.relatedPrescriptions > 0 || relatedDataCounts.relatedDispensations > 0) && (
+                <div className="mt-2 p-2 bg-destructive/10 border border-destructive/20 rounded-md text-destructive text-sm">
+                    <p className="font-bold">Будут также удалены:</p>
+                    <ul className="list-disc pl-5">
+                       {relatedDataCounts.relatedPrescriptions > 0 && <li>Назначения: {relatedDataCounts.relatedPrescriptions}</li>}
+                       {relatedDataCounts.relatedDispensations > 0 && <li>Выдачи: {relatedDataCounts.relatedDispensations}</li>}
+                    </ul>
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -104,10 +119,10 @@ export const columns: ColumnDef<Patient>[] = [
         </Button>
       );
     },
-  },
-  {
-    accessorKey: 'birthYear',
-    header: 'Год рождения',
+     cell: ({ row }) => {
+        const patient = row.original;
+        return `${patient.fio} (${patient.birthYear} г.р.)`;
+    }
   },
   {
     accessorKey: 'diagnosis',
