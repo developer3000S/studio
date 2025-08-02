@@ -49,7 +49,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </svg>
                 </Link>
              </Button>
-            <h1 className="text-xl font-semibold font-headline text-sidebar-primary">Медицинская ИС</h1>
+            <h1 className="text-xl font-semibold font-headline text-sidebar-primary">MediTrack Rx</h1>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -73,7 +73,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarFooter>
             <div className="flex items-center gap-3 p-2">
                 <Avatar>
-                    <AvatarImage src="https://placehold.co/40x40" alt="User" />
+                    <AvatarImage src="https://placehold.co/40x40" alt="User" data-ai-hint="medical professional" />
                     <AvatarFallback>MP</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
