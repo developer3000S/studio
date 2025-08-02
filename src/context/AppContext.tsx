@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 import type { Patient, Medicine, Prescription, Dispensation } from "@/types";
 import { initialPatients, initialMedicines, initialPrescriptions, initialDispensations } from "@/lib/mock-data";
-import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AppContextType {
@@ -28,18 +28,21 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] => {
-    const [storedValue, setStoredValue] = useState<T>(() => {
+    const [storedValue, setStoredValue] = useState<T>(() => initialValue);
+
+    useEffect(() => {
         if (typeof window === 'undefined') {
-            return initialValue;
+            return;
         }
         try {
             const item = window.localStorage.getItem(key);
-            return item ? JSON.parse(item) : initialValue;
+            setStoredValue(item ? JSON.parse(item) : initialValue);
         } catch (error) {
             console.log(error);
-            return initialValue;
+            setStoredValue(initialValue);
         }
-    });
+    }, [key, initialValue]);
+
 
     const setValue = (value: T | ((val: T) => T)) => {
         try {
@@ -62,7 +65,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [medicines, setMedicines] = useLocalStorage<Medicine[]>("medicines", initialMedicines);
   const [prescriptions, setPrescriptions] = useLocalStorage<Prescription[]>("prescriptions", initialPrescriptions);
   const [dispensations, setDispensations] = useLocalStorage<Dispensation[]>("dispensations", initialDispensations);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // We are now on the client, data is loaded from local storage
+    setLoading(false);
+  }, []);
 
   // --- PATIENTS ---
   const addPatient = (patient: Omit<Patient, 'id'>) => {

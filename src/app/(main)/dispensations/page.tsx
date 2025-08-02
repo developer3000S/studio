@@ -1,5 +1,5 @@
 'use client';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { columns } from './components/columns';
 import { DispensationDataTable } from './components/data-table';
@@ -9,7 +9,7 @@ import { useAppContext } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
 
 export default function DispensationsPage() {
-  const { dispensations, patients, medicines } = useAppContext();
+  const { dispensations, patients, medicines, loading } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const searchParams = useSearchParams();
 
@@ -20,6 +20,7 @@ export default function DispensationsPage() {
   }, [searchParams]);
 
   const data = useMemo(() => {
+    if (loading) return [];
     return dispensations.map(d => {
       const patient = patients.find(pat => pat.id === d.patientId);
       const medicine = medicines.find(med => med.id === d.medicineId);
@@ -30,7 +31,7 @@ export default function DispensationsPage() {
         medicineName: medicine?.standardizedMnn || 'н/д',
       };
     });
-  }, [dispensations, patients, medicines]);
+  }, [dispensations, patients, medicines, loading]);
 
   return (
     <div className="container mx-auto py-2">
@@ -44,8 +45,13 @@ export default function DispensationsPage() {
           Добавить выдачу
         </Button>
       </div>
-
-      <DispensationDataTable columns={columns} data={data} />
+      {loading ? (
+         <div className="flex items-center justify-center h-96">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+         </div>
+      ) : (
+        <DispensationDataTable columns={columns} data={data} />
+      )}
       <DispensationForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
     </div>
   );

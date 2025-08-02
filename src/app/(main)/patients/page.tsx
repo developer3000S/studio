@@ -1,5 +1,5 @@
 'use client';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { columns } from './components/columns';
 import { PatientDataTable } from './components/data-table';
@@ -9,7 +9,7 @@ import { useAppContext } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
 
 export default function PatientsPage() {
-  const { patients } = useAppContext();
+  const { patients, loading } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const searchParams = useSearchParams();
 
@@ -32,7 +32,13 @@ export default function PatientsPage() {
         </Button>
       </div>
 
-      <PatientDataTable columns={columns} data={patients} />
+      {loading ? (
+        <div className="flex items-center justify-center h-96">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <PatientDataTable columns={columns} data={patients} />
+      )}
       <PatientForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
     </div>
   );

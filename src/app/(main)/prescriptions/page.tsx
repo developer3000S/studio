@@ -1,5 +1,5 @@
 'use client';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { columns } from './components/columns';
 import { PrescriptionDataTable } from './components/data-table';
@@ -9,7 +9,7 @@ import { useAppContext } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
 
 export default function PrescriptionsPage() {
-  const { prescriptions, patients, medicines, dispensations } = useAppContext();
+  const { prescriptions, patients, medicines, dispensations, loading } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const searchParams = useSearchParams();
 
@@ -20,6 +20,7 @@ export default function PrescriptionsPage() {
   }, [searchParams]);
 
   const data = useMemo(() => {
+    if (loading) return [];
     return prescriptions.map(p => {
       const patient = patients.find(pat => pat.id === p.patientId);
       const medicine = medicines.find(med => med.id === p.medicineId);
@@ -35,7 +36,7 @@ export default function PrescriptionsPage() {
         remainingNeed,
       };
     });
-  }, [prescriptions, patients, medicines, dispensations]);
+  }, [prescriptions, patients, medicines, dispensations, loading]);
 
   return (
     <div className="container mx-auto py-2">
@@ -49,8 +50,13 @@ export default function PrescriptionsPage() {
           Добавить назначение
         </Button>
       </div>
-
-      <PrescriptionDataTable columns={columns} data={data} />
+      {loading ? (
+        <div className="flex items-center justify-center h-96">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <PrescriptionDataTable columns={columns} data={data} />
+      )}
       <PrescriptionForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
     </div>
   );
