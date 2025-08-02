@@ -48,7 +48,7 @@ const DispensationSchema = z.object({
   quantity: z.number(),
 });
 
-const MeditrackRxInsightsInputSchema = z.object({
+export const MeditrackRxInsightsInputSchema = z.object({
   patients: z.array(PatientSchema),
   medicines: z.array(MedicineSchema),
   prescriptions: z.array(PrescriptionSchema),
@@ -57,21 +57,19 @@ const MeditrackRxInsightsInputSchema = z.object({
 });
 export type MeditrackRxInsightsInput = z.infer<typeof MeditrackRxInsightsInputSchema>;
 
-const MeditrackRxInsightsOutputSchema = z.object({
+export const MeditrackRxInsightsOutputSchema = z.object({
   report: z.string().describe('A detailed report in Markdown format.'),
 });
 export type MeditrackRxInsightsOutput = z.infer<typeof MeditrackRxInsightsOutputSchema>;
 
 export async function meditrackRxInsights(input: MeditrackRxInsightsInput): Promise<MeditrackRxInsightsOutput> {
-  return meditrackRxInsightsFlow(input);
-}
-
-const insightsPrompt = ai.definePrompt(
-  {
-    name: 'meditrackRxInsightsPrompt',
-    inputSchema: MeditrackRxInsightsInputSchema,
-    outputSchema: MeditrackRxInsightsOutputSchema,
-    prompt: `
+  const modelToUse = input.model || 'gemini-1.5-flash';
+  console.log(`[meditrackRxInsights] Preparing to call ai.generate with model: ${modelToUse}`);
+  
+  try {
+    const { output } = await ai.generate({
+      model: googleAI(modelToUse),
+      prompt: `
         You are a medical data analyst. Analyze the following data from a medication tracking system.
         Provide a detailed report in Markdown format.
         
@@ -83,28 +81,27 @@ const insightsPrompt = ai.definePrompt(
         5.  Potential issues or areas for improvement, such as patients with high needs or potential stock shortages.
         
         Data:
-        - Patients: {{{json patients}}}
-        - Medicines: {{{json medicines}}}
-        - Prescriptions: {{{json prescriptions}}}
-        - Dispensations: {{{json dispensations}}}
+        - Patients: ${JSON.stringify(input.patients)}
+        - Medicines: ${JSON.stringify(input.medicines)}
+        - Prescriptions: ${JSON.stringify(input.prescriptions)}
+        - Dispensations: ${JSON.stringify(input.dispensations)}
       `,
-    config: {
+      output: {
+        schema: MeditrackRxInsightsOutputSchema,
+      },
+      config: {
         temperature: 0.5,
+      }
+    });
+
+    if (!output) {
+      throw new Error("AI failed to generate a report.");
     }
-  },
-);
-
-const meditrackRxInsightsFlow = ai.defineFlow(
-  {
-    name: 'meditrackRxInsightsFlow',
-    inputSchema: MeditrackRxInsightsInputSchema,
-    outputSchema: MeditrackRxInsightsOutputSchema,
-  },
-  async (input) => {
-    console.log(`Generating insights with model: ${input.model || 'default'}`);
     
-    const { output } = await insightsPrompt(input, { model: googleAI(input.model || 'gemini-1.5-flash') });
+    return output;
 
-    return output!;
+  } catch (e: any) {
+    console.error(`AI generation failed in meditrackRxInsights: ${e.message}`);
+    throw new Error(`AI generation failed in meditrackRxInsights: ${e.message}`);
   }
-);
+}
