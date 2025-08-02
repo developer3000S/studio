@@ -121,7 +121,7 @@ export function MedicationsReport() {
             </TableHeader>
             <TableBody>
               {filteredData.length > 0 ? filteredData.map((item, index) => (
-                <TableRow key={item.id}>
+                <TableRow key={index}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{item.smmnNodeCode}</TableCell>
                   <TableCell>{item.section}</TableCell>
