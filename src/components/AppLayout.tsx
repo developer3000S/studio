@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Users, Pill, ClipboardList, PackageCheck, BarChart3, Sparkles, Stethoscope } from 'lucide-react';
+import { Users, Pill, ClipboardList, PackageCheck, BarChart3, Stethoscope } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 
@@ -27,7 +27,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/prescriptions', label: 'Назначения', icon: ClipboardList },
     { href: '/dispensations', label: 'Выдачи', icon: PackageCheck },
     { href: '/reports', label: 'Отчеты', icon: BarChart3 },
-    { href: '/ai-insights', label: 'AI Insights', icon: Sparkles },
   ];
 
   return (
