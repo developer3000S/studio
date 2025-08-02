@@ -39,7 +39,7 @@ const formSchema = z.object({
 });
 
 export function DispensationForm({ isOpen, onClose, dispensation }: DispensationFormProps) {
-  const { prescriptions, patients, medicines, addDispensation, updateDispensation } = useAppContext();
+  const { prescriptions, patients, medicines, addDispensation, updateDispensation, dispensations } = useAppContext();
   const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,10 +56,29 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
 
   const selectedPatientId = watch('patientId');
 
-  const availableMedicines = prescriptions
-    .filter(p => p.patientId === selectedPatientId)
-    .map(p => medicines.find(m => m.id === p.medicineId))
-    .filter((m): m is NonNullable<typeof m> => m !== undefined);
+  const availableMedicines = React.useMemo(() => {
+    if (!selectedPatientId) return [];
+
+    return prescriptions
+      .filter(p => p.patientId === selectedPatientId)
+      .map(p => {
+        const medicine = medicines.find(m => m.id === p.medicineId);
+        if (!medicine) return null;
+
+        const totalDispensed = dispensations
+            .filter(d => d.patientId === p.patientId && d.medicineId === p.medicineId)
+            .reduce((sum, d) => sum + d.quantity, 0);
+        
+        const remainingNeed = p.annualRequirement - totalDispensed;
+        
+        return {
+            ...medicine,
+            remainingNeed: remainingNeed.toFixed(2),
+        };
+      })
+      .filter((m): m is NonNullable<typeof m> => m !== null);
+  }, [selectedPatientId, prescriptions, medicines, dispensations]);
+
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     const dataWithFormattedDate = {
@@ -212,7 +231,10 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                                       : "opacity-0"
                                   )}
                                 />
-                                {m.standardizedMnn} ({m.standardizedDosage})
+                                <div>
+                                  <div>{m.standardizedMnn} ({m.standardizedDosage})</div>
+                                  <div className="text-xs text-muted-foreground">Остаток: {m.remainingNeed} уп.</div>
+                                </div>
                               </CommandItem>
                             ))}
                              </ScrollArea>
