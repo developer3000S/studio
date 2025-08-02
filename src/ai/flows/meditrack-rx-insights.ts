@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 
 const MeditrackRxInsightsInputSchema = z.object({
   model: z.string().optional().describe('The model to use for generation.'),
@@ -76,7 +77,7 @@ const meditrackRxInsightsFlow = ai.defineFlow(
   async (input) => {
     console.log(`Executing meditrackRxInsightsFlow with model: ${input.model}`);
     try {
-      const { output } = await prompt(input, { model: input.model || 'gemini-1.5-flash-latest' });
+      const { output } = await prompt(input, { model: googleAI(input.model || 'gemini-1.5-flash') });
       console.log('AI generation output received.');
       return output!;
     } catch (e) {

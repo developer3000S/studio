@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { meditrackRxInsights } from "@/ai/flows/meditrack-rx-insights";
 import { useAppContext } from "@/context/AppContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,15 +32,11 @@ export default function AIInsightsPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [logs, setLogs] = useState<string[]>([]);
-    const [models, setModels] = useState<string[]>([
-        'gemini-2.5-pro',
+    const [models] = useState<string[]>([
         'gemini-1.5-pro',
-        'gemini-exp-1206',
         'gemini-1.5-flash',
-        'gemini-1.5-flash-latest',
-        'gemini-2.5-flash',
     ]);
-    const [selectedModel, setSelectedModel] = useState<string>('gemini-1.5-flash-latest');
+    const [selectedModel, setSelectedModel] = useState<string>('gemini-1.5-flash');
 
     const { patients, medicines, prescriptions, dispensations } = useAppContext();
     const { toast } = useToast();
@@ -55,7 +51,7 @@ export default function AIInsightsPage() {
         setSummary('');
         setLogs([]);
         
-        addLog('Начало генерации аналитики...');
+        addLog('Начало генерации аналитики.');
 
         try {
             addLog('Подготовка данных для AI...');
