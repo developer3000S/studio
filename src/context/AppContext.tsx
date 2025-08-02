@@ -1,7 +1,7 @@
 'use client';
 
 import type { Patient, Medicine, Prescription, Dispensation } from "@/types";
-import { initialPatients, initialMedicines, initialPrescriptions, initialDispensations } from "@/lib/mock-data";
+import { generateInitialData } from "@/lib/mock-data";
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,7 +17,7 @@ interface AppContextType {
   addMedicine: (medicine: Omit<Medicine, 'id'>) => void;
   updateMedicine: (medicine: Medicine) => void;
   deleteMedicine: (medicineId: string) => void;
-  addPrescription: (prescription: Omit<Prescription, 'id'>) => void;
+  addPrescription: (prescription: Omit<Prescription, 'id' | 'annualRequirement'>) => void;
   updatePrescription: (prescription: Prescription) => void;
   deletePrescription: (prescriptionId: string) => void;
   addDispensation: (dispensation: Omit<Dispensation, 'id'>) => void;
@@ -28,47 +28,58 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] => {
-    const [storedValue, setStoredValue] = useState<T>(() => initialValue);
+    const [storedValue, setStoredValue] = useState<T>(initialValue);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
+        // This effect runs only on the client, after the initial render.
         try {
             const item = window.localStorage.getItem(key);
-            setStoredValue(item ? JSON.parse(item) : initialValue);
+            if (item) {
+                setStoredValue(JSON.parse(item));
+            } else {
+                 // If no item in localStorage, set the initial value in localStorage
+                window.localStorage.setItem(key, JSON.stringify(initialValue));
+            }
         } catch (error) {
-            console.log(error);
-            setStoredValue(initialValue);
+            console.log(`Error reading from localStorage key "${key}":`, error);
+            // If error, still use the initial value
+        } finally {
+            setIsInitialized(true);
         }
-    }, [key, initialValue]);
+    }, [key]);
 
-
-    const setValue = (value: T | ((val: T) => T)) => {
+    const setValue: React.Dispatch<React.SetStateAction<T>> = (value) => {
         try {
             const valueToStore = value instanceof Function ? value(storedValue) : value;
             setStoredValue(valueToStore);
-            if (typeof window !== 'undefined') {
+             if (typeof window !== 'undefined') {
                 window.localStorage.setItem(key, JSON.stringify(valueToStore));
             }
         } catch (error) {
-            console.log(error);
+            console.log(`Error writing to localStorage key "${key}":`, error);
         }
     };
-    return [storedValue, setValue];
+    
+    // Return the stored value only after it has been initialized from localStorage
+    return [isInitialized ? storedValue : initialValue, setValue];
 };
 
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const { initialPatients, initialMedicines, initialPrescriptions, initialDispensations } = generateInitialData();
+  
   const [patients, setPatients] = useLocalStorage<Patient[]>("patients", initialPatients);
   const [medicines, setMedicines] = useLocalStorage<Medicine[]>("medicines", initialMedicines);
   const [prescriptions, setPrescriptions] = useLocalStorage<Prescription[]>("prescriptions", initialPrescriptions);
   const [dispensations, setDispensations] = useLocalStorage<Dispensation[]>("dispensations", initialDispensations);
+  
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // We are now on the client, data is loaded from local storage
+    // This effect ensures we only stop loading on the client-side,
+    // preventing hydration mismatches.
     setLoading(false);
   }, []);
 
@@ -105,7 +116,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   // --- PRESCRIPTIONS ---
-    const addPrescription = (prescription: Omit<Prescription, 'id'>) => {
+  const addPrescription = (prescription: Omit<Prescription, 'id' | 'annualRequirement'>) => {
+    const medicine = medicines.find(m => m.id === prescription.medicineId);
+    if (!medicine) {
+      toast({ title: 'Ошибка', description: 'Медикамент не найден.', variant: 'destructive' });
+      return;
+    }
+    const annualRequirement = (prescription.dailyConsumption * 365) / medicine.packaging;
+
     const existing = prescriptions.find(p => p.patientId === prescription.patientId && p.medicineId === prescription.medicineId);
 
     if (existing) {
@@ -113,13 +131,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
           title: 'Назначение обновлено',
           description: `Назначение для этого пациента и препарата уже существует. Данные были обновлены.` 
       });
-      updatePrescription({ ...existing, ...prescription });
+      updatePrescription({ ...existing, ...prescription, annualRequirement });
     } else {
        toast({
           title: 'Назначение добавлено',
           description: 'Новое назначение было успешно добавлено.',
       });
-      const newPrescription = { ...prescription, id: Date.now().toString() };
+      const newPrescription = { ...prescription, annualRequirement, id: Date.now().toString() };
       setPrescriptions(prev => [...prev, newPrescription]);
     }
   };
@@ -142,7 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setDispensations(prev => prev.map(d => d.id === updatedDispensation.id ? updatedDispensation : d));
   };
 
-  const deleteDispensation = async (dispensationId: string) => {
+  const deleteDispensation = (dispensationId: string) => {
     setDispensations(prev => prev.filter(d => d.id !== dispensationId));
   };
 

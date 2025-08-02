@@ -264,7 +264,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                           )}
                           >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? format(field.value, "PPP") : <span>Выберите дату</span>}
+                          {field.value ? format(field.value, "PPP", { locale: require('date-fns/locale/ru')}) : <span>Выберите дату</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -274,6 +274,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                               selected={field.value}
                               onSelect={field.onChange}
                               initialFocus
+                              locale={require('date-fns/locale/ru')}
                           />
                       </PopoverContent>
                   </Popover>

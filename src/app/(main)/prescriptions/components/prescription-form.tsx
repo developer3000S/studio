@@ -39,6 +39,7 @@ const formSchema = z.object({
 
 export function PrescriptionForm({ isOpen, onClose, prescription }: PrescriptionFormProps) {
   const { patients, medicines, addPrescription, updatePrescription, prescriptions } = useAppContext();
+  const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -59,7 +60,6 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
 
   const selectedMedicineId = watch('medicineId');
   const dailyConsumption = watch('dailyConsumption');
-  const patientId = watch('patientId');
   
   const selectedMedicine = React.useMemo(() => {
     return medicines.find(m => m.id === selectedMedicineId)
@@ -82,6 +82,10 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
 
     if (prescription) {
       updatePrescription({ ...prescription, ...prescriptionData });
+       toast({
+        title: 'Назначение обновлено',
+        description: 'Данные назначения были успешно обновлены.',
+      });
     } else {
         addPrescription(prescriptionData);
     }
