@@ -9,7 +9,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { Patient, Medicine, Prescription, Dispensation } from '@/types';
 import { googleAI } from '@genkit-ai/googleai';
 
 const PatientSchema = z.object({
@@ -49,7 +48,7 @@ const DispensationSchema = z.object({
   quantity: z.number(),
 });
 
-export const MeditrackRxInsightsInputSchema = z.object({
+const MeditrackRxInsightsInputSchema = z.object({
   patients: z.array(PatientSchema),
   medicines: z.array(MedicineSchema),
   prescriptions: z.array(PrescriptionSchema),
@@ -58,7 +57,7 @@ export const MeditrackRxInsightsInputSchema = z.object({
 });
 export type MeditrackRxInsightsInput = z.infer<typeof MeditrackRxInsightsInputSchema>;
 
-export const MeditrackRxInsightsOutputSchema = z.object({
+const MeditrackRxInsightsOutputSchema = z.object({
   report: z.string().describe('A detailed report in Markdown format.'),
 });
 export type MeditrackRxInsightsOutput = z.infer<typeof MeditrackRxInsightsOutputSchema>;
@@ -67,18 +66,12 @@ export async function meditrackRxInsights(input: MeditrackRxInsightsInput): Prom
   return meditrackRxInsightsFlow(input);
 }
 
-const meditrackRxInsightsFlow = ai.defineFlow(
+const insightsPrompt = ai.definePrompt(
   {
-    name: 'meditrackRxInsightsFlow',
+    name: 'meditrackRxInsightsPrompt',
     inputSchema: MeditrackRxInsightsInputSchema,
     outputSchema: MeditrackRxInsightsOutputSchema,
-  },
-  async (input) => {
-    console.log(`Generating insights with model: ${input.model || 'default'}`);
-    
-    const { output } = await ai.generate({
-      model: googleAI(input.model || 'gemini-1.5-flash'),
-      prompt: `
+    prompt: `
         You are a medical data analyst. Analyze the following data from a medication tracking system.
         Provide a detailed report in Markdown format.
         
@@ -90,18 +83,27 @@ const meditrackRxInsightsFlow = ai.defineFlow(
         5.  Potential issues or areas for improvement, such as patients with high needs or potential stock shortages.
         
         Data:
-        - Patients: ${JSON.stringify(input.patients, null, 2)}
-        - Medicines: ${JSON.stringify(input.medicines, null, 2)}
-        - Prescriptions: ${JSON.stringify(input.prescriptions, null, 2)}
-        - Dispensations: ${JSON.stringify(input.dispensations, null, 2)}
+        - Patients: {{{json patients}}}
+        - Medicines: {{{json medicines}}}
+        - Prescriptions: {{{json prescriptions}}}
+        - Dispensations: {{{json dispensations}}}
       `,
-      output: {
-        schema: MeditrackRxInsightsOutputSchema,
-      },
-       config: {
+    config: {
         temperature: 0.5,
-      }
-    });
+    }
+  },
+);
+
+const meditrackRxInsightsFlow = ai.defineFlow(
+  {
+    name: 'meditrackRxInsightsFlow',
+    inputSchema: MeditrackRxInsightsInputSchema,
+    outputSchema: MeditrackRxInsightsOutputSchema,
+  },
+  async (input) => {
+    console.log(`Generating insights with model: ${input.model || 'default'}`);
+    
+    const { output } = await insightsPrompt(input, { model: googleAI(input.model || 'gemini-1.5-flash') });
 
     return output!;
   }
