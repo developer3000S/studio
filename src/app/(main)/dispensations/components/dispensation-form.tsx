@@ -8,7 +8,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Dispensation } from '@/types';
@@ -45,7 +45,10 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: dispensation ? { ...dispensation, dispensationDate: new Date(dispensation.dispensationDate) } : {
+        patientId: undefined,
+        medicineId: undefined,
         dispensationDate: new Date(),
+        quantity: undefined,
     }
   });
 

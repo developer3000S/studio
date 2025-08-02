@@ -9,8 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Prescription } from '@/types';
@@ -47,7 +46,11 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
         patientId: prescription.patientId,
         medicineId: prescription.medicineId,
         dailyDose: prescription.dailyDose,
-    } : {},
+    } : {
+        patientId: undefined,
+        medicineId: undefined,
+        dailyDose: undefined,
+    },
   });
   
   const { control, handleSubmit, reset, watch } = form;
@@ -252,7 +255,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
             />
 
             <div className="flex flex-col md:grid md:grid-cols-4 md:items-center gap-2">
-                <Label className="md:text-right">Годовая потребность</Label>
+                <FormLabel className="md:text-right">Годовая потребность</FormLabel>
                 <div className="md:col-span-3">
                     <Input value={calculateAnnualRequirement().toFixed(2) + ' уп.'} disabled />
                 </div>
