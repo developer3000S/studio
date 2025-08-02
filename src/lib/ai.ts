@@ -20,7 +20,7 @@ interface InsightsInput {
 }
 
 export async function generateInsights(input: InsightsInput): Promise<string> {
-  // 2. Get the generative model
+  // 2. Get the generative model instance
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const prompt = `
