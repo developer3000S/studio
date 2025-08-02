@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
 
 const MeditrackRxInsightsInputSchema = z.object({
   model: z.string().optional().describe('The model to use for generation.'),
@@ -39,6 +38,35 @@ export async function meditrackRxInsights(input: MeditrackRxInsightsInput): Prom
   }
 }
 
+const prompt = ai.definePrompt({
+  name: 'medtrackRxSummaryPrompt',
+  input: {
+    schema: MeditrackRxInsightsInputSchema,
+  },
+  output: {
+    schema: MeditrackRxInsightsOutputSchema,
+  },
+  prompt: `You are a medical inventory management expert.
+
+  Based on the patient data, medicine data, prescription data, and dispensation data, provide a summary of the current stock and requirements for the medicines.
+
+  Provide a brief, insightful summary.
+
+  Patient Data:
+  {{{patientData}}}
+
+  Medicine Data:
+  {{{medicineData}}}
+
+  Prescription Data:
+  {{{prescriptionData}}}
+
+  Dispensation Data:
+  {{{dispensationData}}}
+
+  Summary:`,
+});
+
 const meditrackRxInsightsFlow = ai.defineFlow(
   {
     name: 'meditrackRxInsightsFlow',
@@ -48,32 +76,7 @@ const meditrackRxInsightsFlow = ai.defineFlow(
   async (input) => {
     console.log(`Executing meditrackRxInsightsFlow with model: ${input.model}`);
     try {
-      const { output } = await ai.generate({
-        model: googleAI(input.model || 'gemini-1.5-flash-latest'),
-        prompt: `You are a medical inventory management expert.
-
-  Based on the patient data, medicine data, prescription data, and dispensation data, provide a summary of the current stock and requirements for the medicines.
-
-  Provide a brief, insightful summary.
-
-  Patient Data:
-  {{patientData}}
-
-  Medicine Data:
-  {{medicineData}}
-
-  Prescription Data:
-  {{prescriptionData}}
-
-  Dispensation Data:
-  {{dispensationData}}
-
-  Summary:`,
-        input,
-        output: {
-          schema: MeditrackRxInsightsOutputSchema,
-        },
-      });
+      const { output } = await prompt(input, { model: input.model || 'gemini-1.5-flash-latest' });
       console.log('AI generation output received.');
       return output!;
     } catch (e) {
