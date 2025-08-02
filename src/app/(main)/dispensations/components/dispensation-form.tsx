@@ -19,6 +19,7 @@ import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -264,7 +265,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                           )}
                           >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? format(field.value, "PPP", { locale: require('date-fns/locale/ru')}) : <span>Выберите дату</span>}
+                          {field.value ? format(field.value, "PPP", { locale: ru}) : <span>Выберите дату</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -274,7 +275,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                               selected={field.value}
                               onSelect={field.onChange}
                               initialFocus
-                              locale={require('date-fns/locale/ru')}
+                              locale={ru}
                           />
                       </PopoverContent>
                   </Popover>
