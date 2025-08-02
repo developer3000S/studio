@@ -1,14 +1,16 @@
 'use server';
 import 'dotenv/config';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/genai';
 import type { Patient, Medicine, Prescription, Dispensation } from '@/types';
 
 // Ensure the API key is set
-if (!process.env.GEMINI_API_KEY) {
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
   throw new Error('GEMINI_API_KEY is not set in the environment variables');
 }
 
-const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+// 1. Create a new instance of the GoogleGenerativeAI class
+const genAI = new GoogleGenerativeAI(apiKey);
 
 interface InsightsInput {
     patients: Patient[];
@@ -18,6 +20,7 @@ interface InsightsInput {
 }
 
 export async function generateInsights(input: InsightsInput): Promise<string> {
+  // 2. Get the generative model
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const prompt = `
@@ -33,6 +36,7 @@ export async function generateInsights(input: InsightsInput): Promise<string> {
   `;
 
   try {
+    // 3. Generate content with the correct method
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
