@@ -27,46 +27,17 @@ const MeditrackRxInsightsOutputSchema = z.object({
 export type MeditrackRxInsightsOutput = z.infer<typeof MeditrackRxInsightsOutputSchema>;
 
 export async function meditrackRxInsights(input: MeditrackRxInsightsInput): Promise<MeditrackRxInsightsOutput> {
-  console.log('Entering meditrackRxInsights flow');
+  console.log('Entering meditrackRxInsights flow wrapper');
   try {
     const result = await meditrackRxInsightsFlow(input);
-    console.log('meditrackRxInsights flow successful');
+    console.log('meditrackRxInsights flow wrapper successful');
     return result;
   } catch(e) {
-    console.error('Error in meditrackRxInsights flow:', e);
+    console.error('Error in meditrackRxInsights flow wrapper:', e);
     const errorMessage = e instanceof Error ? e.message : 'Unknown error';
     throw new Error(`AI generation failed in meditrackRxInsights flow: ${errorMessage}`);
   }
 }
-
-const prompt = ai.definePrompt({
-  name: 'medtrackRxSummaryPrompt',
-  input: {
-    schema: MeditrackRxInsightsInputSchema,
-  },
-  output: {
-    schema: MeditrackRxInsightsOutputSchema,
-  },
-  prompt: `You are a medical inventory management expert.
-
-  Based on the patient data, medicine data, prescription data, and dispensation data, provide a summary of the current stock and requirements for the medicines.
-
-  Provide a brief, insightful summary.
-
-  Patient Data:
-  {{{patientData}}}
-
-  Medicine Data:
-  {{{medicineData}}}
-
-  Prescription Data:
-  {{{prescriptionData}}}
-
-  Dispensation Data:
-  {{{dispensationData}}}
-
-  Summary:`,
-});
 
 const meditrackRxInsightsFlow = ai.defineFlow(
   {
@@ -75,9 +46,33 @@ const meditrackRxInsightsFlow = ai.defineFlow(
     outputSchema: MeditrackRxInsightsOutputSchema,
   },
   async (input) => {
-    console.log(`Executing meditrackRxInsightsFlow with model: ${input.model}`);
+    const modelToUse = input.model || 'gemini-1.5-flash';
+    console.log(`Executing meditrackRxInsightsFlow with explicit model: ${modelToUse}`);
+    
     try {
-      const { output } = await prompt(input, { model: googleAI(input.model || 'gemini-1.5-flash') });
+      const { output } = await ai.generate({
+        model: googleAI(modelToUse),
+        output: { schema: MeditrackRxInsightsOutputSchema },
+        prompt: `You are a medical inventory management expert.
+
+        Based on the patient data, medicine data, prescription data, and dispensation data, provide a summary of the current stock and requirements for the medicines.
+
+        Provide a brief, insightful summary.
+
+        Patient Data:
+        ${input.patientData}
+
+        Medicine Data:
+        ${input.medicineData}
+
+        Prescription Data:
+        ${input.prescriptionData}
+
+        Dispensation Data:
+        ${input.dispensationData}
+
+        Summary:`,
+      });
       console.log('AI generation output received.');
       return output!;
     } catch (e) {
