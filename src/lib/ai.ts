@@ -1,6 +1,6 @@
 'use server';
 import 'dotenv/config';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { Patient, Medicine, Prescription, Dispensation } from '@/types';
 
 // Ensure the API key is set
@@ -9,8 +9,8 @@ if (!apiKey) {
   throw new Error('GEMINI_API_KEY is not set in the environment variables');
 }
 
-// 1. Create a new instance of the GoogleGenAI class
-const genAI = new GoogleGenAI(apiKey);
+// 1. Create a new instance of the GoogleGenerativeAI class
+const genAI = new GoogleGenerativeAI(apiKey);
 
 interface InsightsInput {
     patients: Patient[];
