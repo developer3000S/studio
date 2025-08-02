@@ -17,8 +17,14 @@ import type { Prescription } from '@/types';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
+
 
 interface PrescriptionFormProps {
   isOpen: boolean;
@@ -27,38 +33,35 @@ interface PrescriptionFormProps {
 }
 
 const formSchema = z.object({
-  patientId: z.coerce.number().min(1, 'Пациент обязателен'),
-  medicineId: z.coerce.number().min(1, 'Медикамент обязателен'),
+  patientId: z.coerce.number({invalid_type_error: "Пациент обязателен"}).min(1, 'Пациент обязателен'),
+  medicineId: z.coerce.number({invalid_type_error: "Медикамент обязателен"}).min(1, 'Медикамент обязателен'),
   dailyDose: z.coerce.number().positive('Суточная доза должна быть положительным числом'),
 });
 
 export function PrescriptionForm({ isOpen, onClose, prescription }: PrescriptionFormProps) {
   const { patients, medicines, addPrescription, updatePrescription } = useAppContext();
   const { toast } = useToast();
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<z.infer<typeof formSchema>>({
+  
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: prescription ? {
         patientId: prescription.patientId,
         medicineId: prescription.medicineId,
         dailyDose: prescription.dailyDose,
-    } : {
-      dailyDose: undefined,
-    },
+    } : {},
   });
+  
+  const { control, handleSubmit, reset, watch } = form;
 
   const selectedMedicineId = watch('medicineId');
   const dailyDose = watch('dailyDose');
+  
+  const selectedMedicine = React.useMemo(() => {
+    return medicines.find(m => m.id === selectedMedicineId)
+  }, [selectedMedicineId, medicines]);
 
   const calculateAnnualRequirement = () => {
-    const medicine = medicines.find(m => m.id === selectedMedicineId);
+    const medicine = selectedMedicine;
     if (medicine && dailyDose > 0) {
       const unitsPerDay = dailyDose;
       const daysInYear = 365;
@@ -105,39 +108,148 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
         <form onSubmit={handleSubmit(onSubmit)}>
           <ScrollArea className="max-h-[70vh]">
           <div className="grid gap-4 py-4 px-2">
-             <Controller
-                control={control}
-                name="patientId"
-                render={({ field }) => (
-                    <FormField label="Пациент" id="patientId" error={errors.patientId}>
-                        <Select onValueChange={(v) => field.onChange(Number(v))} defaultValue={String(field.value)}>
-                            <SelectTrigger><SelectValue placeholder="Выберите пациента" /></SelectTrigger>
-                            <SelectContent>
-                                {patients.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.fio}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </FormField>
-                )}
+            <FormField
+              control={control}
+              name="patientId"
+              render={({ field }) => (
+                <FormItem className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4 space-y-0">
+                  <FormLabel className="md:text-right">Пациент</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value
+                            ? patients.find(
+                                (p) => p.id === field.value
+                              )?.fio
+                            : "Выберите пациента"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                       <Command>
+                          <CommandInput placeholder="Поиск пациента..." />
+                          <CommandEmpty>Пациент не найден.</CommandEmpty>
+                          <CommandGroup>
+                             <ScrollArea className="h-48">
+                            {patients.map((p) => (
+                              <CommandItem
+                                value={p.fio}
+                                key={p.id}
+                                onSelect={() => {
+                                  field.onChange(p.id)
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    p.id === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {p.fio}
+                              </CommandItem>
+                            ))}
+                            </ScrollArea>
+                          </CommandGroup>
+                        </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage className="md:col-start-2 md:col-span-3" />
+                </FormItem>
+              )}
             />
 
-            <Controller
-                control={control}
-                name="medicineId"
-                render={({ field }) => (
-                    <FormField label="Медикамент" id="medicineId" error={errors.medicineId}>
-                        <Select onValueChange={(v) => field.onChange(Number(v))} defaultValue={String(field.value)}>
-                            <SelectTrigger><SelectValue placeholder="Выберите медикамент" /></SelectTrigger>
-                            <SelectContent>
-                                {medicines.map(m => <SelectItem key={m.id} value={String(m.id)}>{m.standardizedMnn} ({m.standardizedDosage})</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </FormField>
-                )}
+            <FormField
+              control={control}
+              name="medicineId"
+              render={({ field }) => (
+                 <FormItem className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4 space-y-0">
+                  <FormLabel className="md:text-right">Медикамент</FormLabel>
+                   <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value
+                            ? medicines.find(
+                                (m) => m.id === field.value
+                              )?.standardizedMnn
+                            : "Выберите медикамент"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                       <Command>
+                          <CommandInput placeholder="Поиск медикамента..." />
+                          <CommandEmpty>Медикамент не найден.</CommandEmpty>
+                          <CommandGroup>
+                             <ScrollArea className="h-48">
+                            {medicines.map((m) => (
+                              <CommandItem
+                                value={`${m.standardizedMnn} ${m.standardizedDosage}`}
+                                key={m.id}
+                                onSelect={() => {
+                                   field.onChange(m.id)
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    m.id === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {m.standardizedMnn} ({m.standardizedDosage})
+                              </CommandItem>
+                            ))}
+                             </ScrollArea>
+                          </CommandGroup>
+                        </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage className="md:col-start-2 md:col-span-3" />
+                </FormItem>
+              )}
             />
             
-            <FormField label="Суточная доза" id="dailyDose" error={errors.dailyDose}>
-              <Input id="dailyDose" type="number" step="0.1" {...register('dailyDose')} />
-            </FormField>
+            <FormField
+                control={control}
+                name="dailyDose"
+                render={({ field }) => (
+                    <FormItem className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4 space-y-0">
+                        <FormLabel className="md:text-right">Суточная доза</FormLabel>
+                        <div className="md:col-span-3">
+                            <FormControl>
+                                <Input type="number" step="0.1" {...field} />
+                            </FormControl>
+                             {selectedMedicine && (
+                                <FormDescription>
+                                    Стандартная дозировка: {selectedMedicine.standardizedDosage}
+                                </FormDescription>
+                             )}
+                            <FormMessage />
+                        </div>
+                    </FormItem>
+                )}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4">
                 <Label className="md:text-right">Годовая потребность</Label>
@@ -156,16 +268,4 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
       </DialogContent>
     </Dialog>
   );
-}
-
-function FormField({ label, id, error, children }: { label: string, id: string, error?: { message?: string }, children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4">
-      <Label htmlFor={id} className="md:text-right">{label}</Label>
-      <div className="md:col-span-3">
-        {children}
-        {error && <p className="text-destructive text-xs mt-1">{error.message}</p>}
-      </div>
-    </div>
-  )
 }
