@@ -83,3 +83,27 @@
     font-family: 'PT Sans', sans-serif;
   }
 }
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  .print\:hidden {
+    display: none;
+  }
+  main {
+    padding: 0 !important;
+  }
+  #report-card {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+   .dark .prose-invert {
+    color: black;
+  }
+  .prose h1, .prose h2, .prose h3, .prose h4 {
+    color: black;
+  }
+}

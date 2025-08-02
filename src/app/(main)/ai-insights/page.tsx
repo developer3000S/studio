@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bot, Sparkles, Loader2 } from 'lucide-react';
+import { Bot, Sparkles, Loader2, Printer, Download } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 import { generateInsights } from '@/lib/ai';
 import ReactMarkdown from 'react-markdown';
@@ -33,36 +33,54 @@ export default function AiInsightsPage() {
       setIsLoading(false);
     }
   };
+  
+  const handlePrint = () => {
+    window.print();
+  }
 
   return (
-    <div className="container mx-auto py-2">
-      <div className="flex justify-between items-center mb-4">
+    <div className="container mx-auto py-2" id="ai-insights-page">
+      <div className="flex justify-between items-center mb-4 print:hidden">
         <div>
           <h1 className="text-2xl font-bold font-headline">AI-аналитика</h1>
           <p className="text-muted-foreground">Автоматическая генерация аналитических отчетов.</p>
         </div>
-        <Button onClick={handleGenerate} disabled={isLoading}>
-          {isLoading ? (
+        <div className="flex items-center gap-2">
+           {report && !isLoading && (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Генерация...
+                <Button variant="outline" onClick={handlePrint}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Печать
+                </Button>
+                 <Button variant="outline" onClick={handlePrint}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Скачать PDF
+                </Button>
             </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Сгенерировать отчет
-            </>
-          )}
-        </Button>
+           )}
+            <Button onClick={handleGenerate} disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Генерация...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {report ? 'Сгенерировать заново' : 'Сгенерировать отчет'}
+                </>
+              )}
+            </Button>
+        </div>
       </div>
-      <Card className="min-h-[600px]">
-        <CardHeader>
+      <Card className="min-h-[600px]" id="report-card">
+        <CardHeader className="print:hidden">
           <CardTitle className="flex items-center gap-2">
             <Bot />
             Аналитический отчет
           </CardTitle>
           <CardDescription>
-            Нажмите кнопку, чтобы сгенерировать отчет на основе текущих данных.
+            {report ? 'Отчет сгенерирован ниже. Вы можете его распечатать или сохранить в PDF.' : 'Нажмите кнопку, чтобы сгенерировать отчет на основе текущих данных.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -74,18 +92,18 @@ export default function AiInsightsPage() {
             </div>
           )}
           {error && (
-             <Alert variant="destructive">
+             <Alert variant="destructive" className="print:hidden">
                 <AlertTitle>Ошибка</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           {report && (
-             <div className="prose prose-sm max-w-none">
+             <div className="prose prose-sm max-w-none dark:prose-invert">
                 <ReactMarkdown>{report}</ReactMarkdown>
              </div>
           )}
            {!isLoading && !error && !report && (
-               <div className="flex flex-col items-center justify-center h-[400px] text-center">
+               <div className="flex flex-col items-center justify-center h-[400px] text-center print:hidden">
                   <Bot className="h-16 w-16 text-muted-foreground mb-4" />
                   <p className="text-lg font-semibold text-muted-foreground">Ваш отчет появится здесь</p>
                   <p className="text-sm text-muted-foreground mt-2">Нажмите "Сгенерировать отчет", чтобы начать.</p>
