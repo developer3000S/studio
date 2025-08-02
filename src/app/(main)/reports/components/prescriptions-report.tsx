@@ -1,8 +1,9 @@
+
 'use client';
-import { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
-import { Printer, Download } from 'lucide-react';
+import { Printer, Download, Filter, X } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -13,9 +14,18 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type StatusFilter = "all" | "met" | "unmet";
 
 export function PrescriptionsReport() {
   const { patients, medicines, prescriptions, dispensations } = useAppContext();
+  
+  const [patientFilter, setPatientFilter] = useState('');
+  const [doctorFilter, setDoctorFilter] = useState('');
+  const [medicineFilter, setMedicineFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const reportData = useMemo(() => {
     return prescriptions.map(p => {
@@ -38,6 +48,19 @@ export function PrescriptionsReport() {
         };
     }).sort((a,b) => a.patientName.localeCompare(b.patientName));
   }, [patients, medicines, prescriptions, dispensations]);
+  
+  const filteredData = useMemo(() => {
+      return reportData.filter(item => {
+          const patientMatch = patientFilter ? item.patientName.toLowerCase().includes(patientFilter.toLowerCase()) : true;
+          const doctorMatch = doctorFilter ? item.doctor.toLowerCase().includes(doctorFilter.toLowerCase()) : true;
+          const medicineMatch = medicineFilter ? item.medicineName.toLowerCase().includes(medicineFilter.toLowerCase()) : true;
+          const statusMatch = statusFilter === 'all' 
+            || (statusFilter === 'met' && item.remainingNeed <= 0)
+            || (statusFilter === 'unmet' && item.remainingNeed > 0);
+          
+          return patientMatch && doctorMatch && medicineMatch && statusMatch;
+      })
+  }, [reportData, patientFilter, doctorFilter, medicineFilter, statusFilter]);
 
   const handleExport = () => {
     const headers = [
@@ -45,7 +68,7 @@ export function PrescriptionsReport() {
         "Годовая потребность (уп.)", "Выдано (уп.)", "Остаток (уп.)", "Статус"
     ];
     const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(","), ...reportData.map(item => [
+      + [headers.join(","), ...filteredData.map(item => [
           `"${item.patientName}"`,
           `"${item.doctor}"`,
           `"${item.diagnosis}"`,
@@ -68,6 +91,13 @@ export function PrescriptionsReport() {
   };
 
   const handlePrint = () => window.print();
+  
+  const resetFilters = () => {
+      setPatientFilter('');
+      setDoctorFilter('');
+      setMedicineFilter('');
+      setStatusFilter('all');
+  }
 
   return (
     <Card>
@@ -77,13 +107,34 @@ export function PrescriptionsReport() {
                 <CardTitle>III. Отчет по назначениям</CardTitle>
                 <CardDescription>Детальная информация по каждому назначению.</CardDescription>
             </div>
-            <div className="flex gap-2 self-end sm:self-center">
+            <div className="flex gap-2 self-end sm:self-center print:hidden">
                 <Button variant="outline" onClick={handlePrint}><Printer className="mr-2 h-4 w-4" />Печать</Button>
                 <Button onClick={handleExport}><Download className="mr-2 h-4 w-4" />Экспорт в CSV</Button>
             </div>
         </div>
       </CardHeader>
       <CardContent>
+         <div className="p-4 border rounded-lg mb-4 print:hidden">
+            <h4 className="font-semibold mb-2 flex items-center gap-2"><Filter className="h-4 w-4" />Фильтры</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Input placeholder="Фильтр по пациенту..." value={patientFilter} onChange={e => setPatientFilter(e.target.value)} />
+                <Input placeholder="Фильтр по врачу..." value={doctorFilter} onChange={e => setDoctorFilter(e.target.value)} />
+                <Input placeholder="Фильтр по препарату..." value={medicineFilter} onChange={e => setMedicineFilter(e.target.value)} />
+                 <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Фильтр по статусу" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Все статусы</SelectItem>
+                        <SelectItem value="met">Потребность удовлетворена</SelectItem>
+                        <SelectItem value="unmet">Требуется выдача</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="mt-4 flex justify-end">
+                <Button variant="ghost" size="sm" onClick={resetFilters}><X className="mr-2 h-4 w-4" />Сбросить фильтры</Button>
+            </div>
+        </div>
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
@@ -96,7 +147,7 @@ export function PrescriptionsReport() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reportData.length > 0 ? reportData.map(item => (
+              {filteredData.length > 0 ? filteredData.map(item => (
                 <TableRow key={item.id}>
                   <TableCell>
                       <div className="font-bold">{item.patientName}</div>
@@ -122,7 +173,7 @@ export function PrescriptionsReport() {
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">Нет данных для отчета.</TableCell>
+                  <TableCell colSpan={5} className="h-24 text-center">Нет данных, соответствующих фильтрам.</TableCell>
                 </TableRow>
               )}
             </TableBody>

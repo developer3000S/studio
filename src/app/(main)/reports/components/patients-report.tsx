@@ -1,8 +1,9 @@
+
 'use client';
-import { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
-import { Printer, Download } from 'lucide-react';
+import { Printer, Download, Filter, X } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -12,10 +13,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import React from 'react';
+import { Input } from '@/components/ui/input';
 
 export function PatientsReport() {
   const { patients, medicines, prescriptions } = useAppContext();
+  const [fioFilter, setFioFilter] = useState('');
 
   const reportData = useMemo(() => {
     return patients.map(patient => {
@@ -34,10 +36,16 @@ export function PatientsReport() {
         }
     })
   }, [patients, medicines, prescriptions]);
+  
+  const filteredData = useMemo(() => {
+      return reportData.filter(patient => {
+          return fioFilter ? patient.fio.toLowerCase().includes(fioFilter.toLowerCase()) : true;
+      });
+  }, [reportData, fioFilter]);
 
   const handleExport = () => {
     const rows: string[] = [];
-    reportData.forEach(patient => {
+    filteredData.forEach(patient => {
         rows.push(`"${patient.fio}","${patient.attendingDoctor}","",""`);
         patient.prescriptions.forEach(p => {
             rows.push(`"","","${p.medicineName}","${p.annualRequirement.toFixed(2)}"`);
@@ -67,13 +75,22 @@ export function PatientsReport() {
                 <CardTitle>II. Отчет по пациентам</CardTitle>
                 <CardDescription>Перечень препаратов, назначенных каждому пациенту.</CardDescription>
             </div>
-            <div className="flex gap-2 self-end sm:self-center">
+            <div className="flex gap-2 self-end sm:self-center print:hidden">
                 <Button variant="outline" onClick={handlePrint}><Printer className="mr-2 h-4 w-4" />Печать</Button>
                 <Button onClick={handleExport}><Download className="mr-2 h-4 w-4" />Экспорт в CSV</Button>
             </div>
         </div>
       </CardHeader>
       <CardContent>
+         <div className="p-4 border rounded-lg mb-4 print:hidden">
+            <h4 className="font-semibold mb-2 flex items-center gap-2"><Filter className="h-4 w-4" />Фильтры</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Input placeholder="Фильтр по ФИО..." value={fioFilter} onChange={e => setFioFilter(e.target.value)} className="lg:col-span-2" />
+            </div>
+             <div className="mt-4 flex justify-end">
+                <Button variant="ghost" size="sm" onClick={() => setFioFilter('')}><X className="mr-2 h-4 w-4" />Сбросить фильтры</Button>
+            </div>
+        </div>
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -85,7 +102,7 @@ export function PatientsReport() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reportData.length > 0 ? reportData.map(patient => (
+              {filteredData.length > 0 ? filteredData.map(patient => (
                 <React.Fragment key={patient.id}>
                     <TableRow className="bg-muted/50">
                         <TableCell className="font-bold">{patient.fio}</TableCell>
@@ -106,7 +123,7 @@ export function PatientsReport() {
                 </React.Fragment>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">Нет пациентов для отчета.</TableCell>
+                  <TableCell colSpan={4} className="h-24 text-center">Нет пациентов, соответствующих фильтрам.</TableCell>
                 </TableRow>
               )}
             </TableBody>

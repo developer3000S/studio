@@ -1,8 +1,9 @@
+
 'use client';
-import { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
-import { Printer, Download } from 'lucide-react';
+import { Printer, Download, Filter, X } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -13,9 +14,11 @@ import {
   TableFooter,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 export function FinancialReport() {
   const { medicines, prescriptions, dispensations } = useAppContext();
+  const [medicineFilter, setMedicineFilter] = useState('');
 
   const reportData = useMemo(() => {
     return medicines.map(med => {
@@ -34,15 +37,22 @@ export function FinancialReport() {
         };
     }).filter(item => item.totalAnnualRequirementCost > 0);
   }, [medicines, prescriptions, dispensations]);
+  
+  const filteredData = useMemo(() => {
+    return reportData.filter(item => {
+        const fullName = `${item.standardizedMnn} ${item.standardizedDosage}`.toLowerCase();
+        return medicineFilter ? fullName.includes(medicineFilter.toLowerCase()) : true;
+    });
+  }, [reportData, medicineFilter]);
 
   const totals = useMemo(() => {
-    return reportData.reduce((acc, item) => {
+    return filteredData.reduce((acc, item) => {
         acc.annual += item.totalAnnualRequirementCost;
         acc.dispensed += item.totalDispensedCost;
         acc.remaining += item.remainingNeedCost;
         return acc;
     }, { annual: 0, dispensed: 0, remaining: 0 });
-  }, [reportData]);
+  }, [filteredData]);
   
   const formatCurrency = (amount: number) => new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB" }).format(amount);
 
@@ -53,7 +63,7 @@ export function FinancialReport() {
     const csvContent = "data:text/csv;charset=utf-8," 
       + [
         headers.join(","), 
-        ...reportData.map(item => [
+        ...filteredData.map(item => [
           `"${item.standardizedMnn} ${item.standardizedDosage}"`,
           item.totalAnnualRequirementCost.toFixed(2),
           item.totalDispensedCost.toFixed(2),
@@ -81,13 +91,22 @@ export function FinancialReport() {
                 <CardTitle>IV. Финансовый отчет</CardTitle>
                 <CardDescription>Анализ затрат на медикаменты.</CardDescription>
             </div>
-            <div className="flex gap-2 self-end sm:self-center">
+            <div className="flex gap-2 self-end sm:self-center print:hidden">
                 <Button variant="outline" onClick={handlePrint}><Printer className="mr-2 h-4 w-4" />Печать</Button>
                 <Button onClick={handleExport}><Download className="mr-2 h-4 w-4" />Экспорт в CSV</Button>
             </div>
         </div>
       </CardHeader>
       <CardContent>
+         <div className="p-4 border rounded-lg mb-4 print:hidden">
+            <h4 className="font-semibold mb-2 flex items-center gap-2"><Filter className="h-4 w-4" />Фильтры</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Input placeholder="Фильтр по препарату..." value={medicineFilter} onChange={e => setMedicineFilter(e.target.value)} className="lg:col-span-2" />
+            </div>
+             <div className="mt-4 flex justify-end">
+                <Button variant="ghost" size="sm" onClick={() => setMedicineFilter('')}><X className="mr-2 h-4 w-4" />Сбросить фильтры</Button>
+            </div>
+        </div>
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -99,7 +118,7 @@ export function FinancialReport() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reportData.length > 0 ? reportData.map(item => (
+              {filteredData.length > 0 ? filteredData.map(item => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.standardizedMnn} {item.standardizedDosage}</TableCell>
                   <TableCell>{formatCurrency(item.totalAnnualRequirementCost)}</TableCell>
@@ -108,7 +127,7 @@ export function FinancialReport() {
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">Нет данных для отчета.</TableCell>
+                  <TableCell colSpan={4} className="h-24 text-center">Нет данных, соответствующих фильтрам.</TableCell>
                 </TableRow>
               )}
             </TableBody>
