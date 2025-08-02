@@ -5,6 +5,7 @@ import { MedicationsReport } from "./components/medications-report";
 import { PatientsReport } from "./components/patients-report";
 import { PrescriptionsReport } from "./components/prescriptions-report";
 import { FinancialReport } from "./components/financial-report";
+import { DispensationsReport } from "./components/dispensations-report";
 
 export default function ReportsPage() {
   return (
@@ -17,11 +18,12 @@ export default function ReportsPage() {
       </div>
 
       <Tabs defaultValue="medications">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           <TabsTrigger value="medications">По препаратам</TabsTrigger>
           <TabsTrigger value="patients">По пациентам</TabsTrigger>
           <TabsTrigger value="prescriptions">По назначениям</TabsTrigger>
           <TabsTrigger value="financial">Финансовый</TabsTrigger>
+          <TabsTrigger value="dispensations">По выдачам</TabsTrigger>
         </TabsList>
         <TabsContent value="medications">
             <MedicationsReport />
@@ -34,6 +36,9 @@ export default function ReportsPage() {
         </TabsContent>
         <TabsContent value="financial">
             <FinancialReport />
+        </TabsContent>
+        <TabsContent value="dispensations">
+            <DispensationsReport />
         </TabsContent>
       </Tabs>
     </div>
