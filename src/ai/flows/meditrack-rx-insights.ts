@@ -48,7 +48,7 @@ const DispensationSchema = z.object({
   quantity: z.number(),
 });
 
-export const MeditrackRxInsightsInputSchema = z.object({
+const MeditrackRxInsightsInputSchema = z.object({
   patients: z.array(PatientSchema),
   medicines: z.array(MedicineSchema),
   prescriptions: z.array(PrescriptionSchema),
@@ -57,7 +57,7 @@ export const MeditrackRxInsightsInputSchema = z.object({
 });
 export type MeditrackRxInsightsInput = z.infer<typeof MeditrackRxInsightsInputSchema>;
 
-export const MeditrackRxInsightsOutputSchema = z.object({
+const MeditrackRxInsightsOutputSchema = z.object({
   report: z.string().describe('A detailed report in Markdown format.'),
 });
 export type MeditrackRxInsightsOutput = z.infer<typeof MeditrackRxInsightsOutputSchema>;
