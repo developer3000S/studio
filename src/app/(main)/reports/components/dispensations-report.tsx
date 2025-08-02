@@ -24,6 +24,7 @@ export function DispensationsReport() {
         return {
             ...d,
             patientName: patient?.fio || 'н/д',
+            doctor: patient?.attendingDoctor || 'н/д',
             medicineName: medicine ? `${medicine.standardizedMnn} ${medicine.standardizedDosage}` : 'н/д',
             dispensationDateFormatted: format(new Date(d.dispensationDate), 'dd.MM.yyyy')
         }
@@ -32,7 +33,7 @@ export function DispensationsReport() {
   
   const handleExport = () => {
     const headers = [
-        "Дата выдачи", "Пациент", "Препарат", "Количество (уп.)"
+        "Дата выдачи", "Пациент", "Лечащий врач", "Препарат", "Количество (уп.)"
     ];
     const csvContent = "data:text/csv;charset=utf-8," 
       + [
@@ -40,6 +41,7 @@ export function DispensationsReport() {
         ...reportData.map(item => [
           `"${item.dispensationDateFormatted}"`,
           `"${item.patientName}"`,
+          `"${item.doctor}"`,
           `"${item.medicineName}"`,
           item.quantity
         ].join(","))
@@ -77,6 +79,7 @@ export function DispensationsReport() {
               <TableRow>
                 <TableHead>Дата выдачи</TableHead>
                 <TableHead>Пациент</TableHead>
+                <TableHead>Лечащий врач</TableHead>
                 <TableHead>Препарат</TableHead>
                 <TableHead>Количество (уп.)</TableHead>
               </TableRow>
@@ -86,12 +89,13 @@ export function DispensationsReport() {
                 <TableRow key={item.id}>
                   <TableCell>{item.dispensationDateFormatted}</TableCell>
                   <TableCell className="font-medium">{item.patientName}</TableCell>
+                  <TableCell>{item.doctor}</TableCell>
                   <TableCell>{item.medicineName}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">Нет данных о выдачах.</TableCell>
+                  <TableCell colSpan={5} className="h-24 text-center">Нет данных о выдачах.</TableCell>
                 </TableRow>
               )}
             </TableBody>

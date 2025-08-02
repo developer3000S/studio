@@ -38,13 +38,13 @@ export function PatientsReport() {
   const handleExport = () => {
     const rows: string[] = [];
     reportData.forEach(patient => {
-        rows.push(`"${patient.fio}","",""`);
+        rows.push(`"${patient.fio}","${patient.attendingDoctor}","",""`);
         patient.prescriptions.forEach(p => {
-            rows.push(`"","${p.medicineName}","${p.annualRequirement.toFixed(2)}"`);
+            rows.push(`"","","${p.medicineName}","${p.annualRequirement.toFixed(2)}"`);
         })
     });
 
-    const headers = ["Пациент", "Препарат", "Годовая потребность (уп.)"];
+    const headers = ["Пациент", "Лечащий врач", "Препарат", "Годовая потребность (уп.)"];
     const csvContent = "data:text/csv;charset=utf-8," 
       + [headers.join(","), ...rows].join("\n");
     
@@ -79,6 +79,7 @@ export function PatientsReport() {
             <TableHeader>
               <TableRow>
                 <TableHead>Пациент</TableHead>
+                <TableHead>Лечащий врач</TableHead>
                 <TableHead>Препарат</TableHead>
                 <TableHead>Годовая потребность (уп.)</TableHead>
               </TableRow>
@@ -87,23 +88,25 @@ export function PatientsReport() {
               {reportData.length > 0 ? reportData.map(patient => (
                 <React.Fragment key={patient.id}>
                     <TableRow className="bg-muted/50">
-                        <TableCell colSpan={3} className="font-bold">{patient.fio}</TableCell>
+                        <TableCell className="font-bold">{patient.fio}</TableCell>
+                        <TableCell className="font-bold">{patient.attendingDoctor}</TableCell>
+                        <TableCell colSpan={2}></TableCell>
                     </TableRow>
                     {patient.prescriptions.length > 0 ? patient.prescriptions.map(p => (
                         <TableRow key={p.id}>
-                            <TableCell className="pl-8"></TableCell>
+                            <TableCell colSpan={2} className="pl-8"></TableCell>
                             <TableCell>{p.medicineName}</TableCell>
                             <TableCell>{p.annualRequirement.toFixed(2)}</TableCell>
                         </TableRow>
                     )) : (
                         <TableRow>
-                           <TableCell colSpan={3} className="text-center text-muted-foreground">Нет назначений</TableCell>
+                           <TableCell colSpan={4} className="text-center text-muted-foreground">Нет назначений</TableCell>
                         </TableRow>
                     )}
                 </React.Fragment>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center">Нет пациентов для отчета.</TableCell>
+                  <TableCell colSpan={4} className="h-24 text-center">Нет пациентов для отчета.</TableCell>
                 </TableRow>
               )}
             </TableBody>

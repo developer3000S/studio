@@ -41,7 +41,7 @@ export function PrescriptionsReport() {
 
   const handleExport = () => {
     const headers = [
-        "Пациент", "Врач", "Диагноз", "Препарат", "Суточная доза", 
+        "Пациент", "Лечащий врач", "Диагноз", "Препарат", "Суточная доза", 
         "Годовая потребность (уп.)", "Выдано (уп.)", "Остаток (уп.)", "Статус"
     ];
     const csvContent = "data:text/csv;charset=utf-8," 
@@ -89,6 +89,7 @@ export function PrescriptionsReport() {
             <TableHeader>
               <TableRow>
                 <TableHead>Пациент</TableHead>
+                <TableHead>Лечащий врач</TableHead>
                 <TableHead>Препарат</TableHead>
                 <TableHead>Потребность (Год/Выдано/Ост.)</TableHead>
                 <TableHead>Статус</TableHead>
@@ -100,6 +101,9 @@ export function PrescriptionsReport() {
                   <TableCell>
                       <div className="font-bold">{item.patientName}</div>
                       <div className="text-sm text-muted-foreground">{item.diagnosis}</div>
+                  </TableCell>
+                  <TableCell>
+                      <div className="font-medium">{item.doctor}</div>
                   </TableCell>
                   <TableCell>
                       <div className="font-medium">{item.medicineName}</div>
@@ -118,7 +122,7 @@ export function PrescriptionsReport() {
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">Нет данных для отчета.</TableCell>
+                  <TableCell colSpan={5} className="h-24 text-center">Нет данных для отчета.</TableCell>
                 </TableRow>
               )}
             </TableBody>
