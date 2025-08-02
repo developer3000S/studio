@@ -120,7 +120,7 @@ export const columns: ColumnDef<Medicine>[] = [
     accessorKey: 'price',
     header: 'Цена',
      cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("price"))
+      const amount = parseFloat(String(row.getValue("price")))
       const formatted = new Intl.NumberFormat("ru-RU", {
         style: "currency",
         currency: "RUB",

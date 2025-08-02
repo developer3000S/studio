@@ -1,5 +1,6 @@
 export interface Patient {
-  id: number;
+  id: string;
+  userId: string;
   fio: string;
   birthYear: number;
   diagnosis: string;
@@ -7,7 +8,8 @@ export interface Patient {
 }
 
 export interface Medicine {
-  id: number;
+  id: string;
+  userId: string;
   smmnNodeCode: string;
   section: string;
   standardizedMnn: string;
@@ -20,18 +22,20 @@ export interface Medicine {
 }
 
 export interface Prescription {
-  id: number;
-  patientId: number;
-  medicineId: number;
+  id: string;
+  userId: string;
+  patientId: string;
+  medicineId: string;
   dailyDose: string; // текстовое описание
   dailyConsumption: number; // числовой расход в сутки для расчета
   annualRequirement: number;
 }
 
 export interface Dispensation {
-  id: number;
-  patientId: number;
-  medicineId: number;
+  id: string;
+  userId: string;
+  patientId: string;
+  medicineId: string;
   dispensationDate: string;
   quantity: number;
 }

@@ -32,8 +32,8 @@ interface DispensationFormProps {
 }
 
 const formSchema = z.object({
-  patientId: z.coerce.number({invalid_type_error: "Пациент обязателен"}).min(1, 'Пациент обязателен'),
-  medicineId: z.coerce.number({invalid_type_error: "Медикамент обязателен"}).min(1, 'Медикамент обязателен'),
+  patientId: z.string({invalid_type_error: "Пациент обязателен"}).min(1, 'Пациент обязателен'),
+  medicineId: z.string({invalid_type_error: "Медикамент обязателен"}).min(1, 'Медикамент обязателен'),
   dispensationDate: z.date({ required_error: 'Дата выдачи обязательна'}),
   quantity: z.coerce.number().positive('Количество должно быть положительным числом'),
 });
@@ -45,8 +45,8 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: dispensation ? { ...dispensation, dispensationDate: new Date(dispensation.dispensationDate) } : {
-        patientId: undefined,
-        medicineId: undefined,
+        patientId: '',
+        medicineId: '',
         dispensationDate: new Date(),
         quantity: '' as any,
     }
@@ -103,7 +103,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
   };
 
   const handleClose = () => {
-    reset(dispensation ? { ...dispensation, dispensationDate: new Date(dispensation.dispensationDate) } : { patientId: undefined, medicineId: undefined, dispensationDate: new Date(), quantity: '' as any });
+    reset(dispensation ? { ...dispensation, dispensationDate: new Date(dispensation.dispensationDate) } : { patientId: '', medicineId: '', dispensationDate: new Date(), quantity: '' as any });
     onClose();
   };
   

@@ -31,15 +31,14 @@ interface PrescriptionFormProps {
 }
 
 const formSchema = z.object({
-  patientId: z.coerce.number({invalid_type_error: "Пациент обязателен"}).min(1, 'Пациент обязателен'),
-  medicineId: z.coerce.number({invalid_type_error: "Медикамент обязателен"}).min(1, 'Медикамент обязателен'),
+  patientId: z.string({invalid_type_error: "Пациент обязателен"}).min(1, 'Пациент обязателен'),
+  medicineId: z.string({invalid_type_error: "Медикамент обязателен"}).min(1, 'Медикамент обязателен'),
   dailyDose: z.string().min(1, 'Назначение обязательно'),
   dailyConsumption: z.coerce.number().positive('Расход в сутки должен быть положительным числом'),
 });
 
 export function PrescriptionForm({ isOpen, onClose, prescription }: PrescriptionFormProps) {
   const { patients, medicines, addPrescription, updatePrescription, prescriptions } = useAppContext();
-  const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -49,8 +48,8 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
         dailyDose: prescription.dailyDose,
         dailyConsumption: prescription.dailyConsumption,
     } : {
-        patientId: undefined,
-        medicineId: undefined,
+        patientId: '',
+        medicineId: '',
         dailyDose: '',
         dailyConsumption: '' as any,
     },
@@ -83,19 +82,8 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
 
     if (prescription) {
       updatePrescription({ ...prescription, ...prescriptionData });
-      toast({
-        title: 'Назначение обновлено',
-        description: 'Назначение было успешно обновлено.',
-      });
     } else {
         addPrescription(prescriptionData);
-        const existing = prescriptions.find(p => p.patientId === patientId && p.medicineId === selectedMedicineId);
-        toast({
-            title: existing ? 'Назначение обновлено' : 'Назначение добавлено',
-            description: existing 
-                ? `Назначение для этого пациента и препарата уже существует. Данные были обновлены.` 
-                : 'Новое назначение было успешно добавлено.',
-        });
     }
     onClose();
   };
@@ -107,8 +95,8 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
         dailyDose: prescription.dailyDose,
         dailyConsumption: prescription.dailyConsumption,
      } : { 
-        patientId: undefined, 
-        medicineId: undefined, 
+        patientId: '', 
+        medicineId: '', 
         dailyDose: '', 
         dailyConsumption: '' as any 
     });
