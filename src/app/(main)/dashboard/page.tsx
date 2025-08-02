@@ -71,10 +71,10 @@ export default function DashboardPage() {
           Быстрые действия
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <QuickActionButton href="/patients" icon={PlusCircle} className="bg-blue-600 hover:bg-blue-700">Добавить пациента</QuickActionButton>
-            <QuickActionButton href="/medications" icon={FilePlus} className="bg-green-600 hover:bg-green-700">Добавить препарат</QuickActionButton>
-            <QuickActionButton href="/prescriptions" icon={Syringe} className="bg-cyan-500 hover:bg-cyan-600">Создать назначение</QuickActionButton>
-            <QuickActionButton href="/dispensations" icon={PackageCheck} className="bg-yellow-500 hover:bg-yellow-600 text-black">Зарегистрировать выдачу</QuickActionButton>
+            <QuickActionButton href="/patients/new" icon={PlusCircle} className="bg-blue-600 hover:bg-blue-700">Добавить пациента</QuickActionButton>
+            <QuickActionButton href="/medications/new" icon={FilePlus} className="bg-green-600 hover:bg-green-700">Добавить препарат</QuickActionButton>
+            <QuickActionButton href="/prescriptions/new" icon={Syringe} className="bg-cyan-500 hover:bg-cyan-600">Создать назначение</QuickActionButton>
+            <QuickActionButton href="/dispensations/new" icon={PackageCheck} className="bg-yellow-500 hover:bg-yellow-600 text-black">Зарегистрировать выдачу</QuickActionButton>
         </div>
       </div>
       
