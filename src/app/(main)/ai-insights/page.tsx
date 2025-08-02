@@ -2,12 +2,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { meditrackRxInsights } from "@/ai/flows/meditrack-rx-insights";
+import { listModels } from "@/ai/flows/list-models";
 import { useAppContext } from "@/context/AppContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 function toCSV<T extends object>(data: T[]): string {
     if (data.length === 0) {
@@ -30,11 +33,36 @@ export default function AIInsightsPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [logs, setLogs] = useState<string[]>([]);
+    const [models, setModels] = useState<string[]>([]);
+    const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-pro');
+
     const { patients, medicines, prescriptions, dispensations } = useAppContext();
     const { toast } = useToast();
 
+    useEffect(() => {
+        const fetchModels = async () => {
+            try {
+                const availableModels = await listModels();
+                const generativeModels = availableModels.filter(m => m.includes('gemini'));
+                setModels(generativeModels);
+
+                if (!generativeModels.includes(selectedModel) && generativeModels.length > 0) {
+                    setSelectedModel(generativeModels[0]);
+                }
+            } catch (e) {
+                console.error("Failed to fetch models", e);
+                 toast({
+                    variant: "destructive",
+                    title: "Ошибка",
+                    description: "Не удалось загрузить список AI-моделей.",
+                });
+            }
+        };
+        fetchModels();
+    }, []);
+
     const addLog = (message: string) => {
-        setLogs(prevLogs => [...prevLogs, `[${new Date().toLocaleTimeString()}] ${message}`]);
+        setLogs(prevLogs => [`[${new Date().toLocaleTimeString()}] ${message}`, ...prevLogs]);
     }
 
     const getInsights = async () => {
@@ -52,9 +80,10 @@ export default function AIInsightsPage() {
             const prescriptionData = toCSV(prescriptions);
             const dispensationData = toCSV(dispensations);
 
-            addLog('Данные подготовлены. Вызов AI-потока...');
+            addLog(`Данные подготовлены. Вызов AI-потока с моделью ${selectedModel}...`);
 
             const result = await meditrackRxInsights({
+                model: selectedModel,
                 patientData,
                 medicineData,
                 prescriptionData,
@@ -91,9 +120,30 @@ export default function AIInsightsPage() {
                         Получите сводную информацию о текущих запасах и потребностях в медикаментах, сгенерированную искусственным интеллектом.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                     <div className="space-y-2">
+                        <Label htmlFor="model-select">Выберите модель AI</Label>
+                        <Select
+                            value={selectedModel}
+                            onValueChange={setSelectedModel}
+                            disabled={models.length === 0}
+                        >
+                            <SelectTrigger id="model-select">
+                                <SelectValue placeholder="Выберите модель..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {models.length > 0 ? (
+                                    models.map(model => (
+                                        <SelectItem key={model} value={model}>{model}</SelectItem>
+                                    ))
+                                ) : (
+                                    <SelectItem value="loading" disabled>Загрузка моделей...</SelectItem>
+                                )}
+                            </SelectContent>
+                        </Select>
+                    </div>
                     {isLoading && !summary && !error ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2 pt-4">
                             <Skeleton className="h-4 w-full" />
                             <Skeleton className="h-4 w-full" />
                             <Skeleton className="h-4 w-3/4" />
@@ -114,7 +164,7 @@ export default function AIInsightsPage() {
                     )}
                 </CardContent>
                 <CardFooter>
-                    <Button onClick={getInsights} disabled={isLoading} className="w-full">
+                    <Button onClick={getInsights} disabled={isLoading || models.length === 0} className="w-full">
                         <Sparkles className="mr-2 h-4 w-4" />
                         {isLoading ? 'Генерация...' : 'Сгенерировать аналитику'}
                     </Button>
@@ -127,7 +177,7 @@ export default function AIInsightsPage() {
                         <CardTitle>Логи выполнения</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <pre className="bg-muted p-4 rounded-md text-xs whitespace-pre-wrap break-all">
+                        <pre className="bg-muted p-4 rounded-md text-xs whitespace-pre-wrap break-all max-h-60 overflow-auto">
                             {logs.join('\n')}
                         </pre>
                     </CardContent>
