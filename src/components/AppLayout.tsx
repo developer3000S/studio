@@ -17,9 +17,15 @@ import Link from 'next/link';
 import { Users, Pill, ClipboardList, PackageCheck, BarChart3, Home } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
+import { useState, useEffect } from 'react';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [date, setDate] = useState('');
+
+  useEffect(() => {
+    setDate(new Date().toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' }));
+  }, []);
 
   const navItems = [
     { href: '/dashboard', label: 'Главная', icon: Home },
@@ -80,7 +86,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6">
           <SidebarTrigger className="md:hidden" />
           <div className="flex-1 text-right text-sm text-muted-foreground">
-             {new Date().toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' })}
+             {date}
           </div>
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>
