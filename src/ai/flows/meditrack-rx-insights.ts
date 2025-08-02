@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 
 const MeditrackRxInsightsInputSchema = z.object({
   patientData: z.string().describe('Patient data in CSV format.'),
@@ -70,11 +71,18 @@ const meditrackRxInsightsFlow = ai.defineFlow(
   },
   async input => {
     console.log('Executing meditrackRxInsightsFlow with input...');
-    const {output} = await ai.generate({
-      prompt: prompt,
-      input: input,
-    });
-    console.log('AI generation output received.');
-    return output!;
+    try {
+      const {output} = await ai.generate({
+        model: googleAI('gemini-2.5-pro'),
+        prompt: prompt.prompt,
+        input: input,
+      });
+      console.log('AI generation output received.');
+      return output!;
+    } catch (e) {
+      console.error('Error in meditrackRxInsightsFlow during AI generation:', e);
+      const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+      throw new Error(`AI generation failed in meditrackRxInsightsFlow: ${errorMessage}`);
+    }
   }
 );
