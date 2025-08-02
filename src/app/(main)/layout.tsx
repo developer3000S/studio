@@ -1,3 +1,5 @@
+'use client';
+
 import { AppLayout } from '@/components/AppLayout';
 import { AppProvider } from '@/context/AppContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -38,4 +40,7 @@ export default function MainLayout({
 }) {
   return (
     <AuthProvider>
-      
+      <MainLayoutContent>{children}</MainLayoutContent>
+    </AuthProvider>
+  );
+}
