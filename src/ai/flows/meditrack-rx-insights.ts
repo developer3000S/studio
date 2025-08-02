@@ -71,12 +71,11 @@ const meditrackRxInsightsFlow = ai.defineFlow(
     outputSchema: MeditrackRxInsightsOutputSchema,
   },
   async (input) => {
-    console.log('Executing meditrackRxInsightsFlow with input...');
+    console.log(`Executing meditrackRxInsightsFlow with model: ${input.model}`);
     try {
-      const {output} = await ai.generate({
+      const {output} = await prompt({
+        ...input,
         model: googleAI(input.model || 'gemini-1.5-flash'),
-        prompt: prompt.prompt,
-        input: input,
       });
       console.log('AI generation output received.');
       return output!;
