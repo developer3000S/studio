@@ -48,7 +48,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
         patientId: undefined,
         medicineId: undefined,
         dispensationDate: new Date(),
-        quantity: undefined,
+        quantity: '' as any,
     }
   });
 
@@ -84,7 +84,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
   };
 
   const handleClose = () => {
-    reset(dispensation ? { ...dispensation, dispensationDate: new Date(dispensation.dispensationDate) } : { patientId: undefined, medicineId: undefined, dispensationDate: new Date(), quantity: undefined });
+    reset(dispensation ? { ...dispensation, dispensationDate: new Date(dispensation.dispensationDate) } : { patientId: undefined, medicineId: undefined, dispensationDate: new Date(), quantity: '' as any });
     onClose();
   };
   
