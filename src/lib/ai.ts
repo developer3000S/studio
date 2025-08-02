@@ -18,7 +18,7 @@ interface InsightsInput {
 }
 
 export async function generateInsights(input: InsightsInput): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const prompt = `
     You are an expert medical data analyst. Analyze the following data from a medication tracking system and provide a concise, insightful report in Markdown format.
