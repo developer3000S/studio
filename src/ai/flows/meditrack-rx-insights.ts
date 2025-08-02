@@ -13,7 +13,6 @@ import {z} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
 const MeditrackRxInsightsInputSchema = z.object({
-  model: z.string().optional().describe('The model to use for generation.'),
   patientData: z.string().describe('Patient data in CSV format.'),
   medicineData: z.string().describe('Medicine data in CSV format.'),
   prescriptionData: z.string().describe('Prescription data in CSV format.'),
@@ -27,13 +26,10 @@ const MeditrackRxInsightsOutputSchema = z.object({
 export type MeditrackRxInsightsOutput = z.infer<typeof MeditrackRxInsightsOutputSchema>;
 
 export async function meditrackRxInsights(input: MeditrackRxInsightsInput): Promise<MeditrackRxInsightsOutput> {
-  console.log('Entering meditrackRxInsights flow wrapper');
   try {
     const result = await meditrackRxInsightsFlow(input);
-    console.log('meditrackRxInsights flow wrapper successful');
     return result;
   } catch(e) {
-    console.error('Error in meditrackRxInsights flow wrapper:', e);
     const errorMessage = e instanceof Error ? e.message : 'Unknown error';
     throw new Error(`AI generation failed in meditrackRxInsights flow: ${errorMessage}`);
   }
@@ -46,12 +42,9 @@ const meditrackRxInsightsFlow = ai.defineFlow(
     outputSchema: MeditrackRxInsightsOutputSchema,
   },
   async (input) => {
-    const modelToUse = input.model || 'gemini-1.5-flash';
-    console.log(`Executing meditrackRxInsightsFlow with explicit model: ${modelToUse}`);
-    
     try {
       const { output } = await ai.generate({
-        model: googleAI(modelToUse),
+        model: googleAI('gemini-1.5-flash'),
         output: { schema: MeditrackRxInsightsOutputSchema },
         prompt: `You are a medical inventory management expert.
 
@@ -73,10 +66,8 @@ const meditrackRxInsightsFlow = ai.defineFlow(
 
         Summary:`,
       });
-      console.log('AI generation output received.');
       return output!;
     } catch (e) {
-      console.error('Error in meditrackRxInsightsFlow during AI generation:', e);
       const errorMessage = e instanceof Error ? e.message : 'Unknown error';
       throw new Error(`AI generation failed in meditrackRxInsightsFlow: ${errorMessage}`);
     }
