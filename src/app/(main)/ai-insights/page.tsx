@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { meditrackRxInsights } from "@/ai/flows/meditrack-rx-insights";
-import { listModels } from "@/ai/flows/list-models";
 import { useAppContext } from "@/context/AppContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -33,33 +32,17 @@ export default function AIInsightsPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [logs, setLogs] = useState<string[]>([]);
-    const [models, setModels] = useState<string[]>([]);
+    const [models, setModels] = useState<string[]>([
+        'gemini-2.5-pro',
+        'gemini-1.5-pro',
+        'gemini-exp-1206',
+        'gemini-1.5-flash',
+        'gemini-2.5-flash',
+    ]);
     const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-pro');
 
     const { patients, medicines, prescriptions, dispensations } = useAppContext();
     const { toast } = useToast();
-
-    useEffect(() => {
-        const fetchModels = async () => {
-            try {
-                const availableModels = await listModels();
-                const generativeModels = availableModels.filter(m => m.includes('gemini'));
-                setModels(generativeModels);
-
-                if (!generativeModels.includes(selectedModel) && generativeModels.length > 0) {
-                    setSelectedModel(generativeModels[0]);
-                }
-            } catch (e) {
-                console.error("Failed to fetch models", e);
-                 toast({
-                    variant: "destructive",
-                    title: "Ошибка",
-                    description: "Не удалось загрузить список AI-моделей.",
-                });
-            }
-        };
-        fetchModels();
-    }, [toast, selectedModel]);
 
     const addLog = (message: string) => {
         setLogs(prevLogs => [`[${new Date().toLocaleTimeString()}] ${message}`, ...prevLogs]);
@@ -126,19 +109,14 @@ export default function AIInsightsPage() {
                         <Select
                             value={selectedModel}
                             onValueChange={setSelectedModel}
-                            disabled={models.length === 0}
                         >
                             <SelectTrigger id="model-select">
                                 <SelectValue placeholder="Выберите модель..." />
                             </SelectTrigger>
                             <SelectContent>
-                                {models.length > 0 ? (
-                                    models.map(model => (
-                                        <SelectItem key={model} value={model}>{model}</SelectItem>
-                                    ))
-                                ) : (
-                                    <SelectItem value="loading" disabled>Загрузка моделей...</SelectItem>
-                                )}
+                                {models.map(model => (
+                                    <SelectItem key={model} value={model}>{model}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -164,7 +142,7 @@ export default function AIInsightsPage() {
                     )}
                 </CardContent>
                 <CardFooter>
-                    <Button onClick={getInsights} disabled={isLoading || models.length === 0} className="w-full">
+                    <Button onClick={getInsights} disabled={isLoading} className="w-full">
                         <Sparkles className="mr-2 h-4 w-4" />
                         {isLoading ? 'Генерация...' : 'Сгенерировать аналитику'}
                     </Button>
