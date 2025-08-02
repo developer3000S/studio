@@ -17,10 +17,10 @@ export const initialMedicines: Medicine[] = [
 ];
 
 export const initialPrescriptions: Prescription[] = [
-    { id: 1, patientId: 2, medicineId: 1, dailyDose: 1, annualRequirement: 13.04 },
-    { id: 2, patientId: 4, medicineId: 4, dailyDose: 2, annualRequirement: 73 },
-    { id: 3, patientId: 5, medicineId: 5, dailyDose: 1, annualRequirement: 18.25 },
-    { id: 4, patientId: 1, medicineId: 2, dailyDose: 1, annualRequirement: 18.25 },
+    { id: 1, patientId: 2, medicineId: 1, dailyDose: "1 таб/день", dailyConsumption: 1, annualRequirement: 13.04 },
+    { id: 2, patientId: 4, medicineId: 4, dailyDose: "по 1 таб. 2 раза в день", dailyConsumption: 2, annualRequirement: 73 },
+    { id: 3, patientId: 5, medicineId: 5, dailyDose: "1 таб. утром", dailyConsumption: 1, annualRequirement: 18.25 },
+    { id: 4, patientId: 1, medicineId: 2, dailyDose: "1 таб. в обед", dailyConsumption: 1, annualRequirement: 18.25 },
 ];
 
 export const initialDispensations: Dispensation[] = [

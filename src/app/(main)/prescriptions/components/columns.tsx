@@ -106,7 +106,7 @@ export const columns: ColumnDef<PrescriptionView>[] = [
   },
   {
     accessorKey: 'dailyDose',
-    header: 'Суточная доза',
+    header: 'Назначение',
   },
   {
     accessorKey: 'annualRequirement',

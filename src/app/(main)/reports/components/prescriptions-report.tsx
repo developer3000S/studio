@@ -41,7 +41,7 @@ export function PrescriptionsReport() {
 
   const handleExport = () => {
     const headers = [
-        "Пациент", "Лечащий врач", "Диагноз", "Препарат", "Суточная доза", 
+        "Пациент", "Лечащий врач", "Диагноз", "Препарат", "Назначение", 
         "Годовая потребность (уп.)", "Выдано (уп.)", "Остаток (уп.)", "Статус"
     ];
     const csvContent = "data:text/csv;charset=utf-8," 
@@ -50,7 +50,7 @@ export function PrescriptionsReport() {
           `"${item.doctor}"`,
           `"${item.diagnosis}"`,
           `"${item.medicineName}"`,
-          item.dailyDose,
+          `"${item.dailyDose}"`,
           item.annualRequirement.toFixed(2),
           item.totalDispensed.toFixed(2),
           item.remainingNeed.toFixed(2),
@@ -107,7 +107,7 @@ export function PrescriptionsReport() {
                   </TableCell>
                   <TableCell>
                       <div className="font-medium">{item.medicineName}</div>
-                      <div className="text-sm text-muted-foreground">Сут. доза: {item.dailyDose}</div>
+                      <div className="text-sm text-muted-foreground">Назначение: {item.dailyDose}</div>
                   </TableCell>
                   <TableCell>
                       <div>Год: {item.annualRequirement.toFixed(2)} уп.</div>

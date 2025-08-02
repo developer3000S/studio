@@ -23,7 +23,8 @@ export interface Prescription {
   id: number;
   patientId: number;
   medicineId: number;
-  dailyDose: number;
+  dailyDose: string; // текстовое описание
+  dailyConsumption: number; // числовой расход в сутки для расчета
   annualRequirement: number;
 }
 

@@ -15,7 +15,7 @@ interface AppContextType {
   addMedicine: (medicine: Omit<Medicine, 'id'>) => void;
   updateMedicine: (medicine: Medicine) => void;
   deleteMedicine: (medicineId: number) => void;
-  addPrescription: (prescription: Omit<Prescription, 'id' | 'annualRequirement'> & { annualRequirement: number }) => void;
+  addPrescription: (prescription: Omit<Prescription, 'id'>) => void;
   updatePrescription: (prescription: Prescription) => void;
   deletePrescription: (prescriptionId: number) => void;
   addDispensation: (dispensation: Omit<Dispensation, 'id'>) => void;
@@ -59,20 +59,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setDispensations(prev => prev.filter(d => d.medicineId !== medicineId));
   };
 
-  const addPrescription = (prescription: Omit<Prescription, 'id' | 'annualRequirement'> & { annualRequirement: number }) => {
+  const addPrescription = (prescription: Omit<Prescription, 'id'>) => {
     setPrescriptions(prev => {
       const existingPrescription = prev.find(
         p => p.patientId === prescription.patientId && p.medicineId === prescription.medicineId
       );
 
       if (existingPrescription) {
-        // Update existing prescription
+        // Update existing prescription: we replace the description and consumption, then recalculate requirement.
         return prev.map(p =>
           p.id === existingPrescription.id
             ? {
                 ...p,
-                dailyDose: p.dailyDose + prescription.dailyDose,
-                annualRequirement: p.annualRequirement + prescription.annualRequirement,
+                dailyDose: prescription.dailyDose, // new textual dose
+                dailyConsumption: prescription.dailyConsumption, // new numeric consumption
+                annualRequirement: prescription.annualRequirement, // new calculated requirement
               }
             : p
         );
