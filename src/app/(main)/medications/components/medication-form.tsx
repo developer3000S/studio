@@ -91,7 +91,7 @@ export function MedicationForm({ isOpen, onClose, medicine }: MedicationFormProp
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-        <ScrollArea className="h-96">
+        <ScrollArea className="max-h-[70vh]">
           <div className="grid gap-4 py-4 px-2">
             
             <FormField label="Код узла СМНН" id="smmnNodeCode" error={errors.smmnNodeCode}>
@@ -144,9 +144,9 @@ export function MedicationForm({ isOpen, onClose, medicine }: MedicationFormProp
 
 function FormField({ label, id, error, children }: { label: string, id: string, error?: { message?: string }, children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-4 items-center gap-4">
-      <Label htmlFor={id} className="text-right">{label}</Label>
-      <div className="col-span-3">
+    <div className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4">
+      <Label htmlFor={id} className="md:text-right">{label}</Label>
+      <div className="md:col-span-3">
         {children}
         {error && <p className="text-destructive text-xs mt-1">{error.message}</p>}
       </div>

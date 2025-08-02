@@ -63,7 +63,7 @@ export function PrescriptionDataTable<TData extends { remainingNeed: number }, T
           onChange={(event) =>
             table.getColumn('patientName')?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="w-full md:max-w-sm"
         />
       </div>
       <div className="rounded-md border">
@@ -117,7 +117,7 @@ export function PrescriptionDataTable<TData extends { remainingNeed: number }, T
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between space-x-2 py-4">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-4">
         <div className="text-sm text-muted-foreground">
           Страница {table.getState().pagination.pageIndex + 1} из {table.getPageCount()}
         </div>

@@ -90,12 +90,12 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4">
              {recentPrescriptions.map((p, index) => (
-                 <div key={p.id} className="flex justify-between items-center">
+                 <div key={p.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                     <div>
                         <p className="font-semibold">{p.patientName || "Пациент не найден"}</p>
                         <p className="text-sm text-muted-foreground">{p.medicineName || "Препарат не найден"}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                          <span className={`px-2 py-1 text-xs rounded-full ${index % 3 === 0 ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
                             {index % 3 === 0 ? 'Активно' : 'Завершено'}
                          </span>

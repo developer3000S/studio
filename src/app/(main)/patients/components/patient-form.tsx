@@ -16,6 +16,7 @@ import { z } from 'zod';
 import type { Patient } from '@/types';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface PatientFormProps {
   isOpen: boolean;
@@ -29,6 +30,18 @@ const formSchema = z.object({
   diagnosis: z.string().min(1, 'Диагноз обязателен'),
   attendingDoctor: z.string().min(1, 'Лечащий врач обязателен'),
 });
+
+function FormField({ label, id, error, children }: { label: string, id: string, error?: { message?: string }, children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4">
+      <Label htmlFor={id} className="md:text-right">{label}</Label>
+      <div className="md:col-span-3">
+        {children}
+        {error && <p className="text-destructive text-xs mt-1">{error.message}</p>}
+      </div>
+    </div>
+  )
+}
 
 export function PatientForm({ isOpen, onClose, patient }: PatientFormProps) {
   const { addPatient, updatePatient } = useAppContext();
@@ -72,7 +85,7 @@ export function PatientForm({ isOpen, onClose, patient }: PatientFormProps) {
   
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{patient ? 'Редактировать пациента' : 'Добавить пациента'}</DialogTitle>
           <DialogDescription>
@@ -80,37 +93,23 @@ export function PatientForm({ isOpen, onClose, patient }: PatientFormProps) {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="fio" className="text-right">ФИО</Label>
-              <div className="col-span-3">
-                <Input id="fio" {...register('fio')} />
-                {errors.fio && <p className="text-destructive text-xs mt-1">{errors.fio.message}</p>}
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="birthYear" className="text-right">Год рождения</Label>
-              <div className="col-span-3">
-                <Input id="birthYear" type="number" {...register('birthYear')} />
-                 {errors.birthYear && <p className="text-destructive text-xs mt-1">{errors.birthYear.message}</p>}
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="diagnosis" className="text-right">Диагноз</Label>
-              <div className="col-span-3">
-                <Input id="diagnosis" {...register('diagnosis')} />
-                {errors.diagnosis && <p className="text-destructive text-xs mt-1">{errors.diagnosis.message}</p>}
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="attendingDoctor" className="text-right">Лечащий врач</Label>
-              <div className="col-span-3">
+          <ScrollArea className="max-h-[70vh]">
+          <div className="grid gap-4 py-4 px-2">
+            <FormField label="ФИО" id="fio" error={errors.fio}>
+              <Input id="fio" {...register('fio')} />
+            </FormField>
+             <FormField label="Год рождения" id="birthYear" error={errors.birthYear}>
+               <Input id="birthYear" type="number" {...register('birthYear')} />
+            </FormField>
+             <FormField label="Диагноз" id="diagnosis" error={errors.diagnosis}>
+              <Input id="diagnosis" {...register('diagnosis')} />
+            </FormField>
+             <FormField label="Лечащий врач" id="attendingDoctor" error={errors.attendingDoctor}>
                 <Input id="attendingDoctor" {...register('attendingDoctor')} />
-                {errors.attendingDoctor && <p className="text-destructive text-xs mt-1">{errors.attendingDoctor.message}</p>}
-              </div>
-            </div>
+            </FormField>
           </div>
-          <DialogFooter>
+          </ScrollArea>
+          <DialogFooter className="mt-4">
             <Button type="button" variant="outline" onClick={handleClose}>Отмена</Button>
             <Button type="submit">Сохранить</Button>
           </DialogFooter>

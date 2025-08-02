@@ -18,6 +18,7 @@ import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEffect } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface PrescriptionFormProps {
   isOpen: boolean;
@@ -102,13 +103,14 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-4 py-4">
+          <ScrollArea className="max-h-[70vh]">
+          <div className="grid gap-4 py-4 px-2">
              <Controller
                 control={control}
                 name="patientId"
                 render={({ field }) => (
                     <FormField label="Пациент" id="patientId" error={errors.patientId}>
-                        <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                        <Select onValueChange={(v) => field.onChange(Number(v))} defaultValue={String(field.value)}>
                             <SelectTrigger><SelectValue placeholder="Выберите пациента" /></SelectTrigger>
                             <SelectContent>
                                 {patients.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.fio}</SelectItem>)}
@@ -123,7 +125,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
                 name="medicineId"
                 render={({ field }) => (
                     <FormField label="Медикамент" id="medicineId" error={errors.medicineId}>
-                        <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                        <Select onValueChange={(v) => field.onChange(Number(v))} defaultValue={String(field.value)}>
                             <SelectTrigger><SelectValue placeholder="Выберите медикамент" /></SelectTrigger>
                             <SelectContent>
                                 {medicines.map(m => <SelectItem key={m.id} value={String(m.id)}>{m.standardizedMnn} ({m.standardizedDosage})</SelectItem>)}
@@ -137,15 +139,16 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
               <Input id="dailyDose" type="number" step="0.1" {...register('dailyDose')} />
             </FormField>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Годовая потребность</Label>
-                <div className="col-span-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4">
+                <Label className="md:text-right">Годовая потребность</Label>
+                <div className="md:col-span-3">
                     <Input value={calculateAnnualRequirement().toFixed(2) + ' уп.'} disabled />
                 </div>
             </div>
 
           </div>
-          <DialogFooter>
+          </ScrollArea>
+          <DialogFooter className='mt-4'>
             <Button type="button" variant="outline" onClick={handleClose}>Отмена</Button>
             <Button type="submit">Сохранить</Button>
           </DialogFooter>
@@ -157,9 +160,9 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
 
 function FormField({ label, id, error, children }: { label: string, id: string, error?: { message?: string }, children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-4 items-center gap-4">
-      <Label htmlFor={id} className="text-right">{label}</Label>
-      <div className="col-span-3">
+    <div className="grid grid-cols-1 md:grid-cols-4 items-start md:items-center gap-2 md:gap-4">
+      <Label htmlFor={id} className="md:text-right">{label}</Label>
+      <div className="md:col-span-3">
         {children}
         {error && <p className="text-destructive text-xs mt-1">{error.message}</p>}
       </div>
