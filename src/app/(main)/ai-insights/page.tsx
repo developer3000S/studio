@@ -39,7 +39,7 @@ export default function AIInsightsPage() {
         'gemini-1.5-flash',
         'gemini-2.5-flash',
     ]);
-    const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-pro');
+    const [selectedModel, setSelectedModel] = useState<string>('gemini-1.5-flash');
 
     const { patients, medicines, prescriptions, dispensations } = useAppContext();
     const { toast } = useToast();

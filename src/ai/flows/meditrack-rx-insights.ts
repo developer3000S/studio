@@ -74,7 +74,7 @@ const meditrackRxInsightsFlow = ai.defineFlow(
     console.log('Executing meditrackRxInsightsFlow with input...');
     try {
       const {output} = await ai.generate({
-        model: googleAI(input.model || 'gemini-2.5-pro'),
+        model: googleAI(input.model || 'gemini-1.5-flash'),
         prompt: prompt.prompt,
         input: input,
       });
