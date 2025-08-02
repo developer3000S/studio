@@ -13,7 +13,6 @@ import {z} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
 const MeditrackRxInsightsInputSchema = z.object({
-  model: z.string().optional().describe('The AI model to use for generation.'),
   patientData: z.string().describe('Patient data in CSV format.'),
   medicineData: z.string().describe('Medicine data in CSV format.'),
   prescriptionData: z.string().describe('Prescription data in CSV format.'),
@@ -72,7 +71,7 @@ const meditrackRxInsightsFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-        const model = googleAI(input.model || 'gemini-1.5-flash');
+        const model = googleAI('gemini-1.5-flash');
 
         const { output } = await insightsPrompt(input, { model });
 
