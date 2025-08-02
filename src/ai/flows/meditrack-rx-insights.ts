@@ -39,11 +39,18 @@ export async function meditrackRxInsights(input: MeditrackRxInsightsInput): Prom
   }
 }
 
-const prompt = ai.definePrompt({
-  name: 'meditrackRxInsightsPrompt',
-  input: {schema: MeditrackRxInsightsInputSchema},
-  output: {schema: MeditrackRxInsightsOutputSchema},
-  prompt: `You are a medical inventory management expert.
+const meditrackRxInsightsFlow = ai.defineFlow(
+  {
+    name: 'meditrackRxInsightsFlow',
+    inputSchema: MeditrackRxInsightsInputSchema,
+    outputSchema: MeditrackRxInsightsOutputSchema,
+  },
+  async (input) => {
+    console.log(`Executing meditrackRxInsightsFlow with model: ${input.model}`);
+    try {
+      const { output } = await ai.generate({
+        model: googleAI(input.model || 'gemini-1.5-flash'),
+        prompt: `You are a medical inventory management expert.
 
   Based on the patient data, medicine data, prescription data, and dispensation data, provide a summary of the current stock and requirements for the medicines.
 
@@ -62,20 +69,10 @@ const prompt = ai.definePrompt({
   {{dispensationData}}
 
   Summary:`,
-});
-
-const meditrackRxInsightsFlow = ai.defineFlow(
-  {
-    name: 'meditrackRxInsightsFlow',
-    inputSchema: MeditrackRxInsightsInputSchema,
-    outputSchema: MeditrackRxInsightsOutputSchema,
-  },
-  async (input) => {
-    console.log(`Executing meditrackRxInsightsFlow with model: ${input.model}`);
-    try {
-      const {output} = await prompt({
-        ...input,
-        model: googleAI(input.model || 'gemini-1.5-flash'),
+        input,
+        output: {
+          schema: MeditrackRxInsightsOutputSchema,
+        },
       });
       console.log('AI generation output received.');
       return output!;
