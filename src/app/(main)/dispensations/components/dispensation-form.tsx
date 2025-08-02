@@ -118,10 +118,11 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                             !field.value && "text-muted-foreground"
                           )}
                         >
-                          {field.value
-                            ? patients.find(
-                                (p) => p.id === field.value
-                              )?.fio
+                           {field.value
+                            ? (() => {
+                                const patient = patients.find(p => p.id === field.value);
+                                return patient ? `${patient.fio} (${patient.birthYear} г.р.)` : "Выберите пациента";
+                              })()
                             : "Выберите пациента"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -135,7 +136,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                              <ScrollArea className="h-48">
                             {patients.map((p) => (
                               <CommandItem
-                                value={p.fio}
+                                value={`${p.fio} ${p.birthYear}`}
                                 key={p.id}
                                 onSelect={() => {
                                   field.onChange(p.id)
@@ -149,7 +150,7 @@ export function DispensationForm({ isOpen, onClose, dispensation }: Dispensation
                                       : "opacity-0"
                                   )}
                                 />
-                                {p.fio}
+                                {p.fio} ({p.birthYear} г.р.)
                               </CommandItem>
                             ))}
                             </ScrollArea>
