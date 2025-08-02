@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bot, Sparkles, Loader2, Printer, Download } from 'lucide-react';
+import { Bot, Sparkles, Loader2, Printer } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 import { generateInsights } from '@/lib/ai';
 import ReactMarkdown from 'react-markdown';
@@ -47,16 +47,10 @@ export default function AiInsightsPage() {
         </div>
         <div className="flex items-center gap-2">
            {report && !isLoading && (
-            <>
-                <Button variant="outline" onClick={handlePrint}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Печать
-                </Button>
-                 <Button variant="outline" onClick={handlePrint}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Скачать PDF
-                </Button>
-            </>
+            <Button variant="outline" onClick={handlePrint}>
+                <Printer className="mr-2 h-4 w-4" />
+                Печать
+            </Button>
            )}
             <Button onClick={handleGenerate} disabled={isLoading}>
               {isLoading ? (
