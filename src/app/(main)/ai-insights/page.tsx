@@ -32,7 +32,7 @@ export default function AIInsightsPage() {
     const [error, setError] = useState('');
     const [logs, setLogs] = useState<string[]>([]);
     const [availableModels, setAvailableModels] = useState<string[]>([]);
-    const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash');
+    const [selectedModel, setSelectedModel] = useState('');
 
     const { patients, medicines, prescriptions, dispensations } = useAppContext();
     const { toast } = useToast();
@@ -41,7 +41,6 @@ export default function AIInsightsPage() {
         const hardcodedModels = [
             'gemini-1.5-pro',
             'gemini-1.5-flash',
-            'gemini-1.5-flash-latest'
         ];
         setAvailableModels(hardcodedModels);
         setSelectedModel(hardcodedModels[1]); 
@@ -93,8 +92,8 @@ export default function AIInsightsPage() {
     };
     
     return (
-        <div className="container mx-auto py-2 grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card className="lg:col-span-2">
+        <div className="container mx-auto py-2 grid grid-cols-1 gap-8">
+            <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 font-headline">
                         <Sparkles className="text-primary" />
@@ -140,7 +139,7 @@ export default function AIInsightsPage() {
                     )}
                 </CardContent>
                 <CardFooter>
-                    <Button onClick={getInsights} disabled={isLoading} className="w-full">
+                    <Button onClick={getInsights} disabled={isLoading || !selectedModel} className="w-full">
                         <Sparkles className="mr-2 h-4 w-4" />
                         {isLoading ? 'Генерация...' : 'Сгенерировать аналитику'}
                     </Button>
