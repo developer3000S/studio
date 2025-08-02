@@ -13,7 +13,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLe
 import type { ChartConfig } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
 
-function StatCard({ title, value, change, icon: Icon }) {
+function StatCard({ title, value, change, icon: Icon }: { title: string, value: React.ReactNode, change?: string, icon: React.ElementType }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -43,7 +43,7 @@ function StatCardSkeleton() {
     )
 }
 
-function QuickActionButton({ children, icon: Icon, className, href }) {
+function QuickActionButton({ children, icon: Icon, className, href }: { children: React.ReactNode, icon: React.ElementType, className?: string, href: string }) {
     const router = useRouter();
 
     const handleClick = () => {
@@ -109,7 +109,7 @@ export default function DashboardPage() {
             diagnosisCount[key]++;
         });
 
-        return Object.entries(diagnosisCount).map(([name, value]) => ({ name, value, fill: COLORS[Math.floor(Math.random() * COLORS.length)] })).sort((a,b) => b.value - a.value).slice(0, 5);
+        return Object.entries(diagnosisCount).map(([name, value], index) => ({ name, value, fill: COLORS[index % COLORS.length] })).sort((a,b) => b.value - a.value).slice(0, 5);
     }, [patients]);
     
   return (
@@ -120,21 +120,24 @@ export default function DashboardPage() {
                 Панель управления
             </h1>
         </div>
-        {loading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-            </div>
-        ) : (
-             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <StatCard title="Всего пациентов" value={totalPatients} icon={Users} />
-                <StatCard title="Активных препаратов" value={`${medicines.length}`} icon={Pill} />
-                <StatCard title="Активных назначений" value={`${activePrescriptions}`} icon={ClipboardList} />
-                <StatCard title="Выдач за месяц" value={totalDispensationsThisMonth} icon={PackageCheck} />
-            </div>
-        )}
+        
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {loading ? (
+                <>
+                    <StatCardSkeleton />
+                    <StatCardSkeleton />
+                    <StatCardSkeleton />
+                    <StatCardSkeleton />
+                </>
+            ) : (
+                <>
+                    <StatCard title="Всего пациентов" value={totalPatients} icon={Users} />
+                    <StatCard title="Активных препаратов" value={`${medicines.length}`} icon={Pill} />
+                    <StatCard title="Активных назначений" value={`${activePrescriptions}`} icon={ClipboardList} />
+                    <StatCard title="Выдач за месяц" value={totalDispensationsThisMonth} icon={PackageCheck} />
+                </>
+            )}
+        </div>
      
 
       <div className="grid gap-6 md:grid-cols-2">

@@ -42,6 +42,10 @@ export function PatientsReport() {
           return fioFilter ? patient.fio.toLowerCase().includes(fioFilter.toLowerCase()) : true;
       });
   }, [reportData, fioFilter]);
+  
+  const resetFilters = () => {
+    setFioFilter('');
+  }
 
   const handleExport = () => {
     const rows: string[] = [];
@@ -88,7 +92,7 @@ export function PatientsReport() {
                 <Input placeholder="Фильтр по ФИО..." value={fioFilter} onChange={e => setFioFilter(e.target.value)} className="lg:col-span-2" />
             </div>
              <div className="mt-4 flex justify-end">
-                <Button variant="ghost" size="sm" onClick={() => setFioFilter('')}><X className="mr-2 h-4 w-4" />Сбросить фильтры</Button>
+                <Button variant="ghost" size="sm" onClick={resetFilters}><X className="mr-2 h-4 w-4" />Сбросить фильтры</Button>
             </div>
         </div>
         <div className="rounded-md border">

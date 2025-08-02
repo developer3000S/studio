@@ -91,6 +91,10 @@ export function MedicationsReport() {
   };
   
   const handlePrint = () => window.print();
+  
+  const resetFilters = () => {
+      setMnnFilter('');
+  }
 
   return (
     <Card>
@@ -113,7 +117,7 @@ export function MedicationsReport() {
                 <Input placeholder="Фильтр по МНН..." value={mnnFilter} onChange={e => setMnnFilter(e.target.value)} className="lg:col-span-2" />
             </div>
              <div className="mt-4 flex justify-end">
-                <Button variant="ghost" size="sm" onClick={() => setMnnFilter('')}><X className="mr-2 h-4 w-4" />Сбросить фильтры</Button>
+                <Button variant="ghost" size="sm" onClick={resetFilters}><X className="mr-2 h-4 w-4" />Сбросить фильтры</Button>
             </div>
         </div>
         <div className="rounded-md border overflow-x-auto">
