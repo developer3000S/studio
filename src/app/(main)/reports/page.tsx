@@ -22,8 +22,8 @@ export default function ReportsPage() {
           <TabsTrigger value="medications">По препаратам</TabsTrigger>
           <TabsTrigger value="patients">По пациентам</TabsTrigger>
           <TabsTrigger value="prescriptions">По назначениям</TabsTrigger>
-          <TabsTrigger value="financial">Финансовый</TabsTrigger>
           <TabsTrigger value="dispensations">По выдачам</TabsTrigger>
+          <TabsTrigger value="financial">Финансовый</TabsTrigger>
         </TabsList>
         <TabsContent value="medications">
             <MedicationsReport />
@@ -34,11 +34,11 @@ export default function ReportsPage() {
         <TabsContent value="prescriptions">
             <PrescriptionsReport />
         </TabsContent>
-        <TabsContent value="financial">
-            <FinancialReport />
-        </TabsContent>
         <TabsContent value="dispensations">
             <DispensationsReport />
+        </TabsContent>
+        <TabsContent value="financial">
+            <FinancialReport />
         </TabsContent>
       </Tabs>
     </div>
