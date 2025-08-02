@@ -18,7 +18,6 @@ import { Users, Pill, ClipboardList, PackageCheck, BarChart3, Home, Sparkles, Lo
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,17 +31,10 @@ import {
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [date, setDate] = useState('');
-  const { user, logout } = useAuth();
-  const router = useRouter();
-
+  
   useEffect(() => {
     setDate(new Date().toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' }));
   }, []);
-
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
-  };
 
   const navItems = [
     { href: '/dashboard', label: 'Главная', icon: Home },
@@ -93,18 +85,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                  <div className="flex items-center gap-3 p-2 rounded-md hover:bg-sidebar-accent cursor-pointer">
                     <Avatar>
                         <AvatarImage src="https://placehold.co/40x40" alt="User" data-ai-hint="medical professional" />
-                        <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
+                        <AvatarFallback>MP</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
                         <span className="text-sm font-semibold">Мед. Персонал</span>
-                        <span className="text-xs text-sidebar-foreground/70">{user?.email}</span>
+                        <span className="text-xs text-sidebar-foreground/70">demo@example.com</span>
                     </div>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start">
                 <DropdownMenuLabel>Мой аккаунт</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                <DropdownMenuItem disabled>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Выйти</span>
                 </DropdownMenuItem>
