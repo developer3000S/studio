@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Users, Pill, ClipboardList, PackageCheck, PlusCircle, Syringe, FilePlus, AlertTriangle, Clock, BarChart, PieChart } from 'lucide-react';
+import { Users, Pill, ClipboardList, PackageCheck, PlusCircle, Syringe, FilePlus, AlertTriangle, Clock, BarChart, PieChart, Loader2 } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,6 +11,7 @@ import { useMemo } from 'react';
 import { Bar, Pie, Cell, ResponsiveContainer, BarChart as BarChartComponent, XAxis, YAxis, Tooltip, Legend, PieChart as PieChartComponent } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function StatCard({ title, value, change, icon: Icon }) {
   return (
@@ -25,6 +26,21 @@ function StatCard({ title, value, change, icon: Icon }) {
       </CardContent>
     </Card>
   );
+}
+
+function StatCardSkeleton() {
+    return (
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-4 rounded-full" />
+            </CardHeader>
+            <CardContent>
+                <Skeleton className="h-8 w-1/3 mb-1" />
+                <Skeleton className="h-3 w-1/2" />
+            </CardContent>
+        </Card>
+    )
 }
 
 function QuickActionButton({ children, icon: Icon, className, href }) {
@@ -59,7 +75,7 @@ const dispensationsChartConfig = {
 
 
 export default function DashboardPage() {
-    const { patients, medicines, prescriptions, dispensations } = useAppContext();
+    const { patients, medicines, prescriptions, dispensations, loading } = useAppContext();
 
     const totalPatients = patients.length;
     const activePrescriptions = prescriptions.length;
@@ -104,12 +120,22 @@ export default function DashboardPage() {
                 Панель управления
             </h1>
         </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Всего пациентов" value={totalPatients} icon={Users} />
-        <StatCard title="Активных препаратов" value={`${medicines.length}`} icon={Pill} />
-        <StatCard title="Активных назначений" value={`${activePrescriptions}`} icon={ClipboardList} />
-        <StatCard title="Выдач за месяц" value={totalDispensationsThisMonth} icon={PackageCheck} />
-      </div>
+        {loading ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+            </div>
+        ) : (
+             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatCard title="Всего пациентов" value={totalPatients} icon={Users} />
+                <StatCard title="Активных препаратов" value={`${medicines.length}`} icon={Pill} />
+                <StatCard title="Активных назначений" value={`${activePrescriptions}`} icon={ClipboardList} />
+                <StatCard title="Выдач за месяц" value={totalDispensationsThisMonth} icon={PackageCheck} />
+            </div>
+        )}
+     
 
       <div className="grid gap-6 md:grid-cols-2">
           <Card>
@@ -121,6 +147,11 @@ export default function DashboardPage() {
                   <CardDescription>Количество выданных упаковок за текущий год.</CardDescription>
               </CardHeader>
               <CardContent>
+                 {loading ? (
+                    <div className="flex items-center justify-center h-[250px]">
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                ) : (
                   <ChartContainer config={dispensationsChartConfig} className="h-[250px] w-full">
                       <BarChartComponent data={dispensationsByMonth}>
                           <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
@@ -129,6 +160,7 @@ export default function DashboardPage() {
                           <Bar dataKey="dispensations" radius={4} />
                       </BarChartComponent>
                   </ChartContainer>
+                  )}
               </CardContent>
           </Card>
           <Card>
@@ -140,6 +172,11 @@ export default function DashboardPage() {
                    <CardDescription>Распределение пациентов по коду диагноза (МКБ).</CardDescription>
               </CardHeader>
               <CardContent>
+                 {loading ? (
+                    <div className="flex items-center justify-center h-[250px]">
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                 ) : (
                   <ChartContainer config={diagnosisChartConfig} className="h-[250px] w-full">
                       <PieChartComponent>
                             <Tooltip content={<ChartTooltipContent nameKey="name" />} />
@@ -151,6 +188,7 @@ export default function DashboardPage() {
                            </Pie>
                       </PieChartComponent>
                   </ChartContainer>
+                )}
               </CardContent>
           </Card>
       </div>
