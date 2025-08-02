@@ -59,7 +59,7 @@ export default function AIInsightsPage() {
             }
         };
         fetchModels();
-    }, []);
+    }, [toast, selectedModel]);
 
     const addLog = (message: string) => {
         setLogs(prevLogs => [`[${new Date().toLocaleTimeString()}] ${message}`, ...prevLogs]);
