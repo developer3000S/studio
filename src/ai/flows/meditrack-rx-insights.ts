@@ -13,6 +13,7 @@ import {z} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
 const MeditrackRxInsightsInputSchema = z.object({
+  model: z.string().optional().describe('The AI model to use for generation.'),
   patientData: z.string().describe('Patient data in CSV format.'),
   medicineData: z.string().describe('Medicine data in CSV format.'),
   prescriptionData: z.string().describe('Prescription data in CSV format.'),
@@ -35,6 +36,34 @@ export async function meditrackRxInsights(input: MeditrackRxInsightsInput): Prom
   }
 }
 
+const insightsPrompt = ai.definePrompt(
+  {
+    name: 'meditrackRxInsightsPrompt',
+    input: { schema: MeditrackRxInsightsInputSchema },
+    output: { schema: MeditrackRxInsightsOutputSchema },
+    prompt: `You are a medical inventory management expert.
+
+        Based on the patient data, medicine data, prescription data, and dispensation data, provide a summary of the current stock and requirements for the medicines.
+
+        Provide a brief, insightful summary.
+
+        Patient Data:
+        {{{patientData}}}
+
+        Medicine Data:
+        {{{medicineData}}}
+
+        Prescription Data:
+        {{{prescriptionData}}}
+
+        Dispensation Data:
+        {{{dispensationData}}}
+
+        Summary:`,
+  },
+);
+
+
 const meditrackRxInsightsFlow = ai.defineFlow(
   {
     name: 'meditrackRxInsightsFlow',
@@ -43,32 +72,14 @@ const meditrackRxInsightsFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const { output } = await ai.generate({
-        model: googleAI('gemini-1.5-flash'),
-        output: { schema: MeditrackRxInsightsOutputSchema },
-        prompt: `You are a medical inventory management expert.
+        const model = googleAI(input.model || 'gemini-1.5-flash');
 
-        Based on the patient data, medicine data, prescription data, and dispensation data, provide a summary of the current stock and requirements for the medicines.
+        const { output } = await insightsPrompt(input, { model });
 
-        Provide a brief, insightful summary.
-
-        Patient Data:
-        ${input.patientData}
-
-        Medicine Data:
-        ${input.medicineData}
-
-        Prescription Data:
-        ${input.prescriptionData}
-
-        Dispensation Data:
-        ${input.dispensationData}
-
-        Summary:`,
-      });
-      return output!;
+        return output!;
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+       console.error(`AI generation failed in meditrackRxInsightsFlow: ${errorMessage}`);
       throw new Error(`AI generation failed in meditrackRxInsightsFlow: ${errorMessage}`);
     }
   }
