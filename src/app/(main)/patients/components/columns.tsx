@@ -83,7 +83,7 @@ const ActionsCell = ({ patient }: { patient: Patient }) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
             <AlertDialogDescription>
-              <p>Это действие невозможно отменить. Это приведет к удалению пациента и всех связанных с ним данных.</p>
+              Это действие невозможно отменить. Это приведет к удалению пациента и всех связанных с ним данных.
               {(relatedDataCounts.relatedPrescriptions > 0 || relatedDataCounts.relatedDispensations > 0) && (
                 <div className="mt-2 p-2 bg-destructive/10 border border-destructive/20 rounded-md text-destructive text-sm">
                     <p className="font-bold">Будут также удалены:</p>
