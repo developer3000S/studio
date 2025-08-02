@@ -4,12 +4,20 @@ import { Button } from '@/components/ui/button';
 import { columns } from './components/columns';
 import { PrescriptionDataTable } from './components/data-table';
 import { PrescriptionForm } from './components/prescription-form';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '@/context/AppContext';
+import { useSearchParams } from 'next/navigation';
 
 export default function PrescriptionsPage() {
   const { prescriptions, patients, medicines, dispensations } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      setIsFormOpen(true);
+    }
+  }, [searchParams]);
 
   const data = useMemo(() => {
     return prescriptions.map(p => {

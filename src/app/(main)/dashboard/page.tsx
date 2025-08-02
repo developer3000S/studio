@@ -3,11 +3,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Users, Pill, ClipboardList, PackageCheck, PlusCircle, Syringe, FilePlus, AlertTriangle, Clock, CircleCheck } from 'lucide-react';
+import { Users, Pill, ClipboardList, PackageCheck, PlusCircle, Syringe, FilePlus, AlertTriangle, Clock } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-function StatCard({ title, value, change, icon: Icon, to }) {
+function StatCard({ title, value, change, icon: Icon }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -23,12 +24,16 @@ function StatCard({ title, value, change, icon: Icon, to }) {
 }
 
 function QuickActionButton({ children, icon: Icon, className, href }) {
+    const router = useRouter();
+
+    const handleClick = () => {
+        router.push(`${href}?new=true`);
+    };
+    
     return (
-        <Button asChild className={className}>
-            <Link href={href}>
-                <Icon className="mr-2 h-4 w-4" />
-                {children}
-            </Link>
+        <Button onClick={handleClick} className={className}>
+            <Icon className="mr-2 h-4 w-4" />
+            {children}
         </Button>
     )
 }
@@ -59,10 +64,10 @@ export default function DashboardPage() {
             </h1>
         </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Всего пациентов" value={totalPatients} change="+12 в этом месяце" icon={Users} to="/patients" />
-        <StatCard title="Активных препаратов" value={`${medicines.length}`} icon={Pill} to="/medications" />
-        <StatCard title="Активных назначений" value={`${activePrescriptions}`} icon={ClipboardList} to="/prescriptions" />
-        <StatCard title="Выдач за месяц" value={totalDispensationsThisMonth} change="+13 к прошлому месяцу" icon={PackageCheck} to="/dispensations" />
+        <StatCard title="Всего пациентов" value={totalPatients} change="+12 в этом месяце" icon={Users} />
+        <StatCard title="Активных препаратов" value={`${medicines.length}`} icon={Pill} />
+        <StatCard title="Активных назначений" value={`${activePrescriptions}`} icon={ClipboardList} />
+        <StatCard title="Выдач за месяц" value={totalDispensationsThisMonth} change="+13 к прошлому месяцу" icon={PackageCheck} />
       </div>
 
        <div>
@@ -71,10 +76,10 @@ export default function DashboardPage() {
           Быстрые действия
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <QuickActionButton href="/patients/new" icon={PlusCircle} className="bg-blue-600 hover:bg-blue-700">Добавить пациента</QuickActionButton>
-            <QuickActionButton href="/medications/new" icon={FilePlus} className="bg-green-600 hover:bg-green-700">Добавить препарат</QuickActionButton>
-            <QuickActionButton href="/prescriptions/new" icon={Syringe} className="bg-cyan-500 hover:bg-cyan-600">Создать назначение</QuickActionButton>
-            <QuickActionButton href="/dispensations/new" icon={PackageCheck} className="bg-yellow-500 hover:bg-yellow-600 text-black">Зарегистрировать выдачу</QuickActionButton>
+            <QuickActionButton href="/patients" icon={PlusCircle} className="bg-blue-600 hover:bg-blue-700">Добавить пациента</QuickActionButton>
+            <QuickActionButton href="/medications" icon={FilePlus} className="bg-green-600 hover:bg-green-700">Добавить препарат</QuickActionButton>
+            <QuickActionButton href="/prescriptions" icon={Syringe} className="bg-cyan-500 hover:bg-cyan-600">Создать назначение</QuickActionButton>
+            <QuickActionButton href="/dispensations" icon={PackageCheck} className="bg-yellow-500 hover:bg-yellow-600 text-black">Зарегистрировать выдачу</QuickActionButton>
         </div>
       </div>
       

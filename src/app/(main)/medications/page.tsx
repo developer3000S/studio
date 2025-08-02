@@ -4,12 +4,20 @@ import { Button } from '@/components/ui/button';
 import { columns } from './components/columns';
 import { MedicationDataTable } from './components/data-table';
 import { MedicationForm } from './components/medication-form';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppContext } from '@/context/AppContext';
+import { useSearchParams } from 'next/navigation';
 
 export default function MedicationsPage() {
   const { medicines } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      setIsFormOpen(true);
+    }
+  }, [searchParams]);
 
   return (
     <div className="container mx-auto py-2">
