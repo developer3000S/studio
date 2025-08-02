@@ -37,7 +37,7 @@ const formSchema = z.object({
 });
 
 export function PrescriptionForm({ isOpen, onClose, prescription }: PrescriptionFormProps) {
-  const { patients, medicines, addPrescription, updatePrescription } = useAppContext();
+  const { patients, medicines, addPrescription, updatePrescription, prescriptions } = useAppContext();
   const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -53,10 +53,11 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
     },
   });
   
-  const { control, handleSubmit, reset, watch } = form;
+  const { control, handleSubmit, reset, watch, setError } = form;
 
   const selectedMedicineId = watch('medicineId');
   const dailyDose = watch('dailyDose');
+  const patientId = watch('patientId');
   
   const selectedMedicine = React.useMemo(() => {
     return medicines.find(m => m.id === selectedMedicineId)
@@ -84,11 +85,14 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
         description: 'Назначение было успешно обновлено.',
       });
     } else {
-      addPrescription(prescriptionData);
-      toast({
-        title: 'Назначение добавлено',
-        description: 'Новое назначение было успешно добавлено.',
-      });
+        addPrescription(prescriptionData);
+        const existing = prescriptions.find(p => p.patientId === patientId && p.medicineId === selectedMedicineId);
+        toast({
+            title: existing ? 'Назначение обновлено' : 'Назначение добавлено',
+            description: existing 
+                ? `Суточная доза для существующего назначения была увеличена.` 
+                : 'Новое назначение было успешно добавлено.',
+        });
     }
     onClose();
   };
@@ -123,6 +127,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
                         <Button
                           variant="outline"
                           role="combobox"
+                          disabled={!!prescription}
                           className={cn(
                             "w-full justify-between md:col-span-3",
                             !field.value && "text-muted-foreground"
@@ -184,6 +189,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
                         <Button
                           variant="outline"
                           role="combobox"
+                          disabled={!!prescription}
                           className={cn(
                             "w-full justify-between md:col-span-3",
                             !field.value && "text-muted-foreground"
