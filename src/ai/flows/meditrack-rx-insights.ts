@@ -49,7 +49,7 @@ const meditrackRxInsightsFlow = ai.defineFlow(
     console.log(`Executing meditrackRxInsightsFlow with model: ${input.model}`);
     try {
       const { output } = await ai.generate({
-        model: googleAI(input.model || 'gemini-1.5-flash'),
+        model: googleAI(input.model || 'gemini-1.5-flash-latest'),
         prompt: `You are a medical inventory management expert.
 
   Based on the patient data, medicine data, prescription data, and dispensation data, provide a summary of the current stock and requirements for the medicines.
