@@ -11,24 +11,6 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-// Temporary simple flow for debugging
-export async function simpleTest(subject: string): Promise<string> {
-  console.log('Entering simpleTest flow with subject:', subject);
-  try {
-    const {output} = await ai.generate({
-        prompt: `Tell me a fun fact about ${subject}. Be very brief.`,
-    });
-    const responseText = output?.text ?? 'No response';
-    console.log('ai.generate successful, response:', responseText);
-    return responseText;
-  } catch (e) {
-    console.error('Error in simpleTest flow:', e);
-    // Re-throw the error to be caught by the client
-    throw new Error('AI generation failed in simpleTest flow');
-  }
-}
-
-
 const MeditrackRxInsightsInputSchema = z.object({
   patientData: z.string().describe('Patient data in CSV format.'),
   medicineData: z.string().describe('Medicine data in CSV format.'),
@@ -43,7 +25,16 @@ const MeditrackRxInsightsOutputSchema = z.object({
 export type MeditrackRxInsightsOutput = z.infer<typeof MeditrackRxInsightsOutputSchema>;
 
 export async function meditrackRxInsights(input: MeditrackRxInsightsInput): Promise<MeditrackRxInsightsOutput> {
-  return meditrackRxInsightsFlow(input);
+  console.log('Entering meditrackRxInsights flow');
+  try {
+    const result = await meditrackRxInsightsFlow(input);
+    console.log('meditrackRxInsights flow successful');
+    return result;
+  } catch(e) {
+    console.error('Error in meditrackRxInsights flow:', e);
+    const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+    throw new Error(`AI generation failed in meditrackRxInsights flow: ${errorMessage}`);
+  }
 }
 
 const prompt = ai.definePrompt({
@@ -53,6 +44,8 @@ const prompt = ai.definePrompt({
   prompt: `You are a medical inventory management expert.
 
   Based on the patient data, medicine data, prescription data, and dispensation data, provide a summary of the current stock and requirements for the medicines.
+
+  Provide a brief, insightful summary.
 
   Patient Data:
   {{patientData}}
@@ -76,13 +69,12 @@ const meditrackRxInsightsFlow = ai.defineFlow(
     outputSchema: MeditrackRxInsightsOutputSchema,
   },
   async input => {
+    console.log('Executing meditrackRxInsightsFlow with input...');
     const {output} = await ai.generate({
       prompt: prompt,
       input: input,
-      output: {
-        schema: MeditrackRxInsightsOutputSchema
-      }
     });
+    console.log('AI generation output received.');
     return output!;
   }
 );

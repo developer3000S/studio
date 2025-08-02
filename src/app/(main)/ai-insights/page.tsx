@@ -3,17 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
 import { useState } from "react";
-import { meditrackRxInsights, simpleTest } from "@/ai/flows/meditrack-rx-insights";
+import { meditrackRxInsights } from "@/ai/flows/meditrack-rx-insights";
 import { useAppContext } from "@/context/AppContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-function toCSV<T>(data: T[], headers: (keyof T)[]): string {
+function toCSV<T extends object>(data: T[]): string {
+    if (data.length === 0) {
+        return "";
+    }
+    const headers = Object.keys(data[0]);
     const headerRow = headers.join(',');
     const dataRows = data.map(row => 
         headers.map(header => {
-            const value = String(row[header] ?? '');
+            const value = String(row[header as keyof T] ?? '');
             return `"${value.replace(/"/g, '""')}"`;
         }).join(',')
     );
@@ -42,10 +46,23 @@ export default function AIInsightsPage() {
         addLog('Начало генерации аналитики...');
 
         try {
-            addLog('Вызов simpleTest с параметром "the sun"...');
-            const result = await simpleTest("the sun");
-            addLog(`simpleTest успешно выполнен. Результат: ${result}`);
-            setSummary(result);
+            addLog('Подготовка данных для AI...');
+            const patientData = toCSV(patients);
+            const medicineData = toCSV(medicines);
+            const prescriptionData = toCSV(prescriptions);
+            const dispensationData = toCSV(dispensations);
+
+            addLog('Данные подготовлены. Вызов AI-потока...');
+
+            const result = await meditrackRxInsights({
+                patientData,
+                medicineData,
+                prescriptionData,
+                dispensationData,
+            });
+
+            addLog(`AI-поток успешно выполнен.`);
+            setSummary(result.summary);
 
         } catch (e: any) {
             const errorMessage = e instanceof Error ? e.message : String(e);
