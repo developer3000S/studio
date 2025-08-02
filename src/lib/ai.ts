@@ -1,7 +1,8 @@
 'use server';
 import 'dotenv/config';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import type { Patient, Medicine, Prescription, Dispensation } from '@/types';
+import { ProxyAgent } from 'undici';
 
 // Ensure the API key is set
 const apiKey = process.env.GEMINI_API_KEY;
@@ -17,12 +18,20 @@ interface InsightsInput {
     medicines: Medicine[];
     prescriptions: Prescription[];
     dispensations: Dispensation[];
+    proxyUrl?: string;
 }
 
 export async function generateInsights(input: InsightsInput): Promise<string> {
   try {
-    // 2. Get the generative model instance
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    let model: GenerativeModel;
+    
+    if (input.proxyUrl) {
+      const proxyAgent = new ProxyAgent(input.proxyUrl);
+      const genAIWithProxy = new GoogleGenerativeAI(apiKey, { fetch: (url, init) => fetch(url, { ...init, dispatcher: proxyAgent } as any) });
+      model = genAIWithProxy.getGenerativeModel({ model: "gemini-1.5-flash" });
+    } else {
+       model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    }
 
     const prompt = `
       You are an expert medical data analyst. Analyze the following data from a medication tracking system and provide a concise, insightful report in Markdown format. The report must be in Russian.
@@ -46,6 +55,9 @@ export async function generateInsights(input: InsightsInput): Promise<string> {
     // Provide a more user-friendly error message
     if (e.message.includes('API key not valid')) {
         throw new Error('AI generation failed: The provided API key is not valid. Please check your .env file.');
+    }
+     if (e.message.includes('undici')) {
+        throw new Error(`AI generation failed due to a proxy error: ${e.message}. Please check your proxy settings.`);
     }
     throw new Error(`AI generation failed: ${e.message}`);
   }
