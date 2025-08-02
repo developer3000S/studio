@@ -49,7 +49,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
     } : {
         patientId: undefined,
         medicineId: undefined,
-        dailyDose: undefined,
+        dailyDose: '' as any, // Use empty string for controlled input
     },
   });
   
@@ -98,7 +98,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
   };
   
   const handleClose = () => {
-    reset(prescription ? { patientId: prescription.patientId, medicineId: prescription.medicineId, dailyDose: prescription.dailyDose } : { patientId: undefined, medicineId: undefined, dailyDose: undefined });
+    reset(prescription ? { patientId: prescription.patientId, medicineId: prescription.medicineId, dailyDose: prescription.dailyDose } : { patientId: undefined, medicineId: undefined, dailyDose: '' as any });
     onClose();
   };
 
