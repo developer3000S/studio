@@ -214,8 +214,8 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
                              <ScrollArea className="h-48">
                             {medicines.map((m) => (
                               <CommandItem
-                                value={`${m.standardizedMnn} ${m.standardizedDosage}`}
                                 key={m.id}
+                                value={`${m.standardizedMnn} ${m.standardizedDosage}`}
                                 onSelect={() => {
                                    field.onChange(m.id)
                                 }}
