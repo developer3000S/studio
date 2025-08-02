@@ -19,6 +19,8 @@ import { Input } from '@/components/ui/input';
 export function FinancialReport() {
   const { medicines, prescriptions, dispensations } = useAppContext();
   const [medicineFilter, setMedicineFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 15;
 
   const reportData = useMemo(() => {
     return medicines.map(med => {
@@ -39,11 +41,22 @@ export function FinancialReport() {
   }, [medicines, prescriptions, dispensations]);
   
   const filteredData = useMemo(() => {
+    setPage(1); // Reset page on filter change
     return reportData.filter(item => {
         const fullName = `${item.standardizedMnn} ${item.standardizedDosage}`.toLowerCase();
         return medicineFilter ? fullName.includes(medicineFilter.toLowerCase()) : true;
     });
   }, [reportData, medicineFilter]);
+
+  const pageCount = useMemo(() => {
+    return Math.ceil(filteredData.length / rowsPerPage);
+  }, [filteredData, rowsPerPage]);
+
+  const paginatedData = useMemo(() => {
+      const start = (page - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      return filteredData.slice(start, end);
+  }, [filteredData, page, rowsPerPage]);
 
   const totals = useMemo(() => {
     return filteredData.reduce((acc, item) => {
@@ -118,7 +131,7 @@ export function FinancialReport() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.length > 0 ? filteredData.map(item => (
+              {paginatedData.length > 0 ? paginatedData.map(item => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.standardizedMnn} {item.standardizedDosage}</TableCell>
                   <TableCell>{formatCurrency(item.totalAnnualRequirementCost)}</TableCell>
@@ -141,6 +154,31 @@ export function FinancialReport() {
             </TableFooter>
           </Table>
         </div>
+        {pageCount > 1 && (
+            <div className="flex items-center justify-between py-4 print:hidden">
+                <div className="text-sm text-muted-foreground">
+                    Страница {page} из {pageCount}
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                        disabled={page === 1}
+                    >
+                        Назад
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(prev => Math.min(prev + 1, pageCount))}
+                        disabled={page === pageCount}
+                    >
+                        Вперед
+                    </Button>
+                </div>
+            </div>
+        )}
       </CardContent>
     </Card>
   );
