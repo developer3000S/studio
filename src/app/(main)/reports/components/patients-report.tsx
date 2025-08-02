@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import React from 'react';
 
 export function PatientsReport() {
   const { patients, medicines, prescriptions } = useAppContext();
@@ -84,8 +85,8 @@ export function PatientsReport() {
             </TableHeader>
             <TableBody>
               {reportData.length > 0 ? reportData.map(patient => (
-                <>
-                    <TableRow key={patient.id} className="bg-muted/50">
+                <React.Fragment key={patient.id}>
+                    <TableRow className="bg-muted/50">
                         <TableCell colSpan={3} className="font-bold">{patient.fio}</TableCell>
                     </TableRow>
                     {patient.prescriptions.length > 0 ? patient.prescriptions.map(p => (
@@ -99,7 +100,7 @@ export function PatientsReport() {
                            <TableCell colSpan={3} className="text-center text-muted-foreground">Нет назначений</TableCell>
                         </TableRow>
                     )}
-                </>
+                </React.Fragment>
               )) : (
                 <TableRow>
                   <TableCell colSpan={3} className="h-24 text-center">Нет пациентов для отчета.</TableCell>
