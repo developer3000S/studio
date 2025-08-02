@@ -44,7 +44,7 @@ export default function DashboardPage() {
         return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
     }).length;
 
-    const recentPrescriptions = [...prescriptions].slice(0, 5).map(p => {
+    const recentPrescriptions = [...prescriptions].sort((a, b) => b.id - a.id).slice(0, 5).map(p => {
         const patient = patients.find(pat => pat.id === p.patientId);
         const medicine = medicines.find(med => med.id === p.medicineId);
         return { ...p, patientName: patient?.fio, medicineName: `${medicine?.standardizedMnn} ${medicine?.standardizedDosage}` }
@@ -60,8 +60,8 @@ export default function DashboardPage() {
         </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Всего пациентов" value={totalPatients} change="+12 в этом месяце" icon={Users} to="/patients" />
-        <StatCard title="Активных препаратов" value={`${medicines.length} из ${medicines.length}`} icon={Pill} to="/medications" />
-        <StatCard title="Активных назначений" value={`${activePrescriptions} из 320 всего`} icon={ClipboardList} to="/prescriptions" />
+        <StatCard title="Активных препаратов" value={`${medicines.length}`} icon={Pill} to="/medications" />
+        <StatCard title="Активных назначений" value={`${activePrescriptions}`} icon={ClipboardList} to="/prescriptions" />
         <StatCard title="Выдач за месяц" value={totalDispensationsThisMonth} change="+13 к прошлому месяцу" icon={PackageCheck} to="/dispensations" />
       </div>
 
@@ -87,17 +87,20 @@ export default function DashboardPage() {
              {recentPrescriptions.map((p, index) => (
                  <div key={p.id} className="flex justify-between items-center">
                     <div>
-                        <p className="font-semibold">{p.patientName}</p>
-                        <p className="text-sm text-muted-foreground">{p.medicineName}</p>
+                        <p className="font-semibold">{p.patientName || "Пациент не найден"}</p>
+                        <p className="text-sm text-muted-foreground">{p.medicineName || "Препарат не найден"}</p>
                     </div>
                     <div className="text-right">
                          <span className={`px-2 py-1 text-xs rounded-full ${index % 3 === 0 ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
                             {index % 3 === 0 ? 'Активно' : 'Завершено'}
                          </span>
-                         <p className="text-sm text-muted-foreground mt-1">29.01.2024 - 1 уп.</p>
+                         <p className="text-sm text-muted-foreground mt-1">{new Date().toLocaleDateString('ru-RU')} - {p.dailyDose} уп.</p>
                     </div>
                  </div>
              ))}
+             {recentPrescriptions.length === 0 && (
+                <p className="text-sm text-muted-foreground">Нет недавних назначений.</p>
+             )}
           </CardContent>
         </Card>
         <Card>
