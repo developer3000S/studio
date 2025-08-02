@@ -129,3 +129,5 @@ export const columns: ColumnDef<PrescriptionView>[] = [
   {
     id: 'actions',
     cell: ({ row }) => <ActionsCell prescription={row.original} />,
+  },
+];
