@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 // Mock user type. Can be expanded if needed.
 interface MockUser {
@@ -25,49 +25,71 @@ const demoUser: MockUser = {
     isDemo: true,
 };
 
+const getInitialUser = (): MockUser | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    const item = window.localStorage.getItem('user');
+    return item ? JSON.parse(item) : null;
+  } catch (error) {
+    console.warn("Error reading user from localStorage", error);
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<MockUser | null>(null);
-  // Set loading to false initially as we don't need to wait for Firebase
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<MockUser | null>(getInitialUser);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setUser(getInitialUser());
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (user) {
+        window.localStorage.setItem('user', JSON.stringify(user));
+      } else {
+        window.localStorage.removeItem('user');
+      }
+    } catch (error) {
+      console.warn('Error saving user to localStorage', error);
+    }
+  }, [user]);
+
 
   // All auth functions are now simple async functions that set a mock user
   const login = async (email: string, pass: string) => {
     setLoading(true);
-    console.log(`AuthContext: Attempting login for ${email}`);
     // Simulate a network delay
     await new Promise(res => setTimeout(res, 500));
     setUser({ email, isDemo: false });
-    console.log(`AuthContext: User set for ${email}`);
     setLoading(false);
   }
 
   const signup = async (email: string, pass: string) => {
     setLoading(true);
-    console.log(`AuthContext: Attempting signup for ${email}`);
     // Simulate a network delay
     await new Promise(res => setTimeout(res, 500));
     setUser({ email, isDemo: false });
-     console.log(`AuthContext: User set after signup for ${email}`);
     setLoading(false);
   }
   
   const demoLogin = async () => {
     setLoading(true);
-    console.log("AuthContext: Attempting demo login...");
     // Simulate a network delay
     await new Promise(res => setTimeout(res, 500));
     setUser(demoUser);
     setLoading(false);
-    console.log("AuthContext: Demo user set.", demoUser);
   }
 
   const logout = async () => {
     setLoading(true);
-    console.log("AuthContext: Logging out.");
     await new Promise(res => setTimeout(res, 500));
     setUser(null);
     setLoading(false);
-    console.log("AuthContext: User set to null.");
   };
   
   const value = {
