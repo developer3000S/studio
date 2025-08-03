@@ -75,9 +75,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setPrescriptions(prescriptionsData);
         setDispensations(dispensationsData);
     } catch (err: any) {
-        const errorMessage = "Не удалось загрузить данные. Убедитесь, что сервер запущен и база данных доступна. Проверьте переменную DATABASE_URL в .env файле и выполните 'npx prisma db push'.";
+        const errorMessage = "Не удалось загрузить данные. Проверьте, что сервер запущен, база данных доступна и переменная DATABASE_URL в .env файле настроена правильно. После установки переменной выполните 'npx prisma db push'.";
         setError(errorMessage);
-        toast({ title: "Ошибка загрузки данных", description: errorMessage, variant: "destructive", duration: 10000 });
+        toast({ title: "Ошибка подключения к базе данных", description: errorMessage, variant: "destructive", duration: 15000 });
     } finally {
         setLoading(false);
     }
