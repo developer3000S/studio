@@ -87,7 +87,7 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4">
           <Button type="submit" className="w-full" disabled={loading || isDemoLoading}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Войти"}
           </Button>
