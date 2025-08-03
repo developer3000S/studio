@@ -33,38 +33,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // All auth functions are now simple async functions that set a mock user
   const login = async (email: string, pass: string) => {
     setLoading(true);
-    console.log(`Attempting login for ${email}`);
+    console.log(`AuthContext: Attempting login for ${email}`);
     // Simulate a network delay
     await new Promise(res => setTimeout(res, 500));
     setUser({ email, isDemo: false });
+    console.log(`AuthContext: User set for ${email}`);
     setLoading(false);
   }
 
   const signup = async (email: string, pass: string) => {
     setLoading(true);
-    console.log(`Attempting signup for ${email}`);
+    console.log(`AuthContext: Attempting signup for ${email}`);
     // Simulate a network delay
     await new Promise(res => setTimeout(res, 500));
     setUser({ email, isDemo: false });
+     console.log(`AuthContext: User set after signup for ${email}`);
     setLoading(false);
   }
   
   const demoLogin = async () => {
     setLoading(true);
-    console.log("Attempting demo login...");
+    console.log("AuthContext: Attempting demo login...");
     // Simulate a network delay
     await new Promise(res => setTimeout(res, 500));
     setUser(demoUser);
     setLoading(false);
-    console.log("Demo user set.");
+    console.log("AuthContext: Demo user set.", demoUser);
   }
 
   const logout = async () => {
     setLoading(true);
-    console.log("Logging out.");
+    console.log("AuthContext: Logging out.");
     await new Promise(res => setTimeout(res, 500));
     setUser(null);
     setLoading(false);
+    console.log("AuthContext: User set to null.");
   };
   
   const value = {

@@ -16,12 +16,15 @@ export default function MainLayout({
   const router = useRouter();
 
   useEffect(() => {
+    console.log('MainLayout: Auth check effect running. Loading:', loading, 'User:', user);
     if (!loading && !user) {
+      console.log('MainLayout: User not found and not loading, redirecting to /login');
       router.replace('/login');
     }
   }, [user, loading, router]);
 
   if (loading || !user) {
+    console.log('MainLayout: Rendering loader because loading is', loading, 'or user is', user);
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -29,6 +32,7 @@ export default function MainLayout({
     );
   }
 
+  console.log('MainLayout: User authenticated, rendering AppLayout.');
   return (
       <AppProvider>
         <AppLayout>{children}</AppLayout>

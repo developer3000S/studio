@@ -23,9 +23,12 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
+      console.log("Login page: Calling login");
       await login(email, password);
+      console.log("Login page: login successful, redirecting");
       router.push('/dashboard');
     } catch (err: any) {
+      console.error("Login page: login failed", err);
       setError(err.message);
     } finally {
         setLoading(false);
@@ -38,7 +41,7 @@ export default function LoginPage() {
     try {
         console.log("Login page: Calling demoLogin");
         await demoLogin();
-        console.log("Login page: demoLogin successful, redirecting");
+        console.log("Login page: demoLogin successful, redirecting to /dashboard");
         router.push('/dashboard');
     } catch (err: any)
     {
