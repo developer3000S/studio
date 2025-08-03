@@ -155,4 +155,3 @@ npm run dev
 *   `npm run start`: Запускает продакшен-сборку приложения.
 *   `npm run lint`: Запускает проверку кода с помощью ESLint.
 *   `npm run typecheck`: Проверяет типы TypeScript без создания сборки.
-
