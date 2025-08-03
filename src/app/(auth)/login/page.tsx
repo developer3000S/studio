@@ -20,41 +20,31 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('LoginPage: Начало процесса входа.');
     setError(null);
     setLoading(true);
     try {
-      console.log('LoginPage: Вызов функции login из AuthContext.');
       await login(email, password);
-      console.log('LoginPage: Вход успешен, перенаправление на /dashboard.');
       router.push('/dashboard');
     } catch (err: any) {
-      console.error('LoginPage: Ошибка при входе:', err);
-      if (err.code === 'auth/invalid-credential') {
-        setError('Неверный email или пароль.');
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/network-request-failed') {
+        setError('Неверный email или пароль, или произошла сетевая ошибка.');
       } else {
         setError(err.message);
       }
     } finally {
-        console.log('LoginPage: Завершение процесса входа.');
         setLoading(false);
     }
   };
 
   const handleDemoLogin = async () => {
-    console.log('LoginPage: Начало процесса демо-входа.');
     setError(null);
     setIsDemoLoading(true);
     try {
-        console.log('LoginPage: Вызов функции demoLogin из AuthContext.');
         await demoLogin();
-        console.log('LoginPage: Демо-вход успешен, перенаправление на /dashboard.');
         router.push('/dashboard');
     } catch (err: any) {
-        console.error('LoginPage: Ошибка при демо-входе:', err);
-        setError(err.message);
+        setError('Ошибка демо-входа: ' + err.message);
     } finally {
-        console.log('LoginPage: Завершение процесса демо-входа.');
         setIsDemoLoading(false);
     }
   }
