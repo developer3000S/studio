@@ -136,7 +136,7 @@ pnpm install
     GEMINI_API_KEY="ВАШ_GEMINI_API_КЛЮЧ"
     ```
 
-3.  Замените `"ВАШ_..."` на ваши реальные ключи, полученные в [Firebase Console](https://console.firebase.google.com/) и [Google AI Studio](https://aistudio.google.com/app/apikey).
+3.  Замените `"ВАШ_..."` на ваши реальные ключи, полученные в [Firebase Console](https://console.firebase.google.com/) и [Google AI Studio](https://aistudio.google.com/app/apikey). **Обратите внимание на префикс `NEXT_PUBLIC_` для ключей Firebase.**
 
 ### 4. Запустите сервер для разработки
 
@@ -146,7 +146,7 @@ pnpm install
 npm run dev
 ```
 
-После выполнения команды вы увидите в терминале адрес, по которому будет доступно приложение. Обычно это `http://localhost:9002`. Откройте эту ссылку в вашем браузере.
+После выполнения команды вы увидите в терминале адрес, по которому будет доступно приложение. Обычно это `http://localhost:9002`. Откройте эту ссылку в вашем браузере. **Важно: возможно, потребуется перезапустить сервер (`Ctrl+C` и снова `npm run dev`), чтобы изменения в `.env` файле применились.**
 
 ## Доступные скрипты
 
