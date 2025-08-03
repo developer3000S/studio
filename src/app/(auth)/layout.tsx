@@ -39,9 +39,9 @@ const AuthLayoutContent = ({ children }: { children: ReactNode }) => {
           </div>
           <div className="hidden bg-muted lg:block">
             <Image
-              src="/pharmacy.jpg"
-              alt="Современная аптека с персоналом"
-              width="1920"
+              src="/img/pharmacy.jpg"
+              alt="Медицина"
+              width="1080"
               height="1080"
               data-ai-hint="modern pharmacy"
               className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"

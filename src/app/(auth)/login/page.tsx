@@ -14,7 +14,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const { login, demoLogin } = useAuth();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -34,6 +35,19 @@ export default function LoginPage() {
         setLoading(false);
     }
   };
+
+  const handleDemoLogin = async () => {
+    setError(null);
+    setIsDemoLoading(true);
+    try {
+        await demoLogin();
+        router.push('/dashboard');
+    } catch (err: any) {
+        setError(err.message);
+    } finally {
+        setIsDemoLoading(false);
+    }
+  }
 
   return (
     <>
@@ -73,9 +87,14 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             />
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Войти"}
-        </Button>
+        <div className="grid grid-cols-2 gap-4">
+          <Button type="submit" className="w-full" disabled={loading || isDemoLoading}>
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Войти"}
+          </Button>
+           <Button type="button" variant="secondary" className="w-full" disabled={loading || isDemoLoading} onClick={handleDemoLogin}>
+              {isDemoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Демо-вход"}
+          </Button>
+        </div>
       </form>
       <div className="mt-4 text-center text-sm">
         Нет аккаунта?{' '}
