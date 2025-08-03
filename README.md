@@ -126,10 +126,17 @@ pnpm install
 2.  Скопируйте в него следующее содержимое:
 
     ```env
-    GEMINI_API_KEY="ВАШ_API_КЛЮЧ"
+    NEXT_PUBLIC_FIREBASE_API_KEY="ВАШ_API_КЛЮЧ"
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="ВАШ_AUTH_DOMAIN"
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID="ВАШ_PROJECT_ID"
+    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="ВАШ_STORAGE_BUCKET"
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="ВАШ_MESSAGING_SENDER_ID"
+    NEXT_PUBLIC_FIREBASE_APP_ID="ВАШ_APP_ID"
+    
+    GEMINI_API_KEY="ВАШ_GEMINI_API_КЛЮЧ"
     ```
 
-3.  Замените `"ВАШ_API_КЛЮЧ"` на ваш реальный API-ключ, полученный в [Google AI Studio](https://aistudio.google.com/app/apikey).
+3.  Замените `"ВАШ_..."` на ваши реальные ключи, полученные в [Firebase Console](https://console.firebase.google.com/) и [Google AI Studio](https://aistudio.google.com/app/apikey).
 
 ### 4. Запустите сервер для разработки
 
@@ -148,3 +155,4 @@ npm run dev
 *   `npm run start`: Запускает продакшен-сборку приложения.
 *   `npm run lint`: Запускает проверку кода с помощью ESLint.
 *   `npm run typecheck`: Проверяет типы TypeScript без создания сборки.
+
