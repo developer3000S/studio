@@ -20,7 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 
 
@@ -38,8 +38,9 @@ const formSchema = z.object({
 });
 
 export function PrescriptionForm({ isOpen, onClose, prescription }: PrescriptionFormProps) {
-  const { patients, medicines, addPrescription, updatePrescription, prescriptions } = useAppContext();
+  const { patients, medicines, addPrescription, updatePrescription } = useAppContext();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,7 +57,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
     },
   });
   
-  const { control, handleSubmit, reset, watch, setError } = form;
+  const { control, handleSubmit, reset, watch } = form;
 
   const selectedMedicineId = watch('medicineId');
   const dailyConsumption = watch('dailyConsumption');
@@ -76,20 +77,24 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
     return 0;
   };
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    const annualRequirement = calculateAnnualRequirement();
-    const prescriptionData = { ...data, annualRequirement };
-
-    if (prescription) {
-      updatePrescription({ ...prescription, ...prescriptionData });
-       toast({
-        title: 'Назначение обновлено',
-        description: 'Данные назначения были успешно обновлены.',
-      });
-    } else {
-        addPrescription(prescriptionData);
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+    try {
+        const annualRequirement = calculateAnnualRequirement();
+        
+        if (prescription) {
+            const prescriptionData = { ...prescription, ...data, annualRequirement };
+            await updatePrescription(prescriptionData);
+        } else {
+            const prescriptionData = { ...data, annualRequirement };
+            await addPrescription(prescriptionData);
+        }
+        onClose();
+    } catch (e: any) {
+        toast({ title: 'Ошибка', description: e.message, variant: 'destructive' });
+    } finally {
+        setIsSubmitting(false);
     }
-    onClose();
   };
   
   const handleClose = () => {
@@ -298,7 +303,10 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
           </ScrollArea>
           <DialogFooter className='mt-4'>
             <Button type="button" variant="outline" onClick={handleClose}>Отмена</Button>
-            <Button type="submit">Сохранить</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Сохранить
+            </Button>
           </DialogFooter>
         </form>
         </Form>

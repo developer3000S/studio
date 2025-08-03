@@ -2,8 +2,12 @@
 
 import type { Patient, Medicine, Prescription, Dispensation } from "@/types";
 import { generateInitialData } from "@/lib/mock-data";
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "./AuthContext";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, doc, writeBatch, getDoc, setDoc } from "firebase/firestore";
+
 
 interface AppContextType {
   patients: Patient[];
@@ -11,160 +15,207 @@ interface AppContextType {
   prescriptions: Prescription[];
   dispensations: Dispensation[];
   loading: boolean;
-  addPatient: (patient: Omit<Patient, 'id'>) => void;
-  updatePatient: (patient: Patient) => void;
-  deletePatient: (patientId: string) => void;
-  addMedicine: (medicine: Omit<Medicine, 'id'>) => void;
-  updateMedicine: (medicine: Medicine) => void;
-  deleteMedicine: (medicineId: string) => void;
-  addPrescription: (prescription: Omit<Prescription, 'id' | 'annualRequirement'>) => void;
-  updatePrescription: (prescription: Prescription) => void;
-  deletePrescription: (prescriptionId: string) => void;
-  addDispensation: (dispensation: Omit<Dispensation, 'id'>) => void;
-  updateDispensation: (dispensation: Dispensation) => void;
-  deleteDispensation: (dispensationId: string) => void;
+  addPatient: (patient: Omit<Patient, 'id'>) => Promise<void>;
+  updatePatient: (patient: Patient) => Promise<void>;
+  deletePatient: (patientId: string) => Promise<void>;
+  addMedicine: (medicine: Omit<Medicine, 'id'>) => Promise<void>;
+  updateMedicine: (medicine: Medicine) => Promise<void>;
+  deleteMedicine: (medicineId: string) => Promise<void>;
+  addPrescription: (prescription: Omit<Prescription, 'id'>) => Promise<void>;
+  updatePrescription: (prescription: Prescription) => Promise<void>;
+  deletePrescription: (prescriptionId: string) => Promise<void>;
+  addDispensation: (dispensation: Omit<Dispensation, 'id'>) => Promise<void>;
+  updateDispensation: (dispensation: Dispensation) => Promise<void>;
+  deleteDispensation: (dispensationId: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] => {
-    const [storedValue, setStoredValue] = useState<T>(initialValue);
-    const [isInitialized, setIsInitialized] = useState(false);
+const seedInitialData = async (userId: string) => {
+    const { initialPatients, initialMedicines, initialPrescriptions, initialDispensations } = generateInitialData();
+    const batch = writeBatch(db);
 
-    useEffect(() => {
-        // This effect runs only on the client, after the initial render.
-        try {
-            const item = window.localStorage.getItem(key);
-            if (item) {
-                setStoredValue(JSON.parse(item));
-            } else {
-                 // If no item in localStorage, set the initial value in localStorage
-                window.localStorage.setItem(key, JSON.stringify(initialValue));
-            }
-        } catch (error) {
-            console.log(`Error reading from localStorage key "${key}":`, error);
-            // If error, still use the initial value
-        } finally {
-            setIsInitialized(true);
-        }
-    }, [key]);
-
-    const setValue: React.Dispatch<React.SetStateAction<T>> = (value) => {
-        try {
-            const valueToStore = value instanceof Function ? value(storedValue) : value;
-            setStoredValue(valueToStore);
-             if (typeof window !== 'undefined') {
-                window.localStorage.setItem(key, JSON.stringify(valueToStore));
-            }
-        } catch (error) {
-            console.log(`Error writing to localStorage key "${key}":`, error);
-        }
+    const seedCollection = (collectionName: string, data: any[]) => {
+        data.forEach(item => {
+            const docRef = doc(db, "users", userId, collectionName, item.id);
+            batch.set(docRef, item);
+        });
     };
     
-    // Return the stored value only after it has been initialized from localStorage
-    return [isInitialized ? storedValue : initialValue, setValue];
+    seedCollection('patients', initialPatients);
+    seedCollection('medicines', initialMedicines);
+    seedCollection('prescriptions', initialPrescriptions);
+    seedCollection('dispensations', initialDispensations);
+
+    await batch.commit();
+
+    return { initialPatients, initialMedicines, initialPrescriptions, initialDispensations };
 };
 
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const { initialPatients, initialMedicines, initialPrescriptions, initialDispensations } = generateInitialData();
+  const { user } = useAuth();
   
-  const [patients, setPatients] = useLocalStorage<Patient[]>("patients", initialPatients);
-  const [medicines, setMedicines] = useLocalStorage<Medicine[]>("medicines", initialMedicines);
-  const [prescriptions, setPrescriptions] = useLocalStorage<Prescription[]>("prescriptions", initialPrescriptions);
-  const [dispensations, setDispensations] = useLocalStorage<Dispensation[]>("dispensations", initialDispensations);
-  
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [dispensations, setDispensations] = useState<Dispensation[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchData = useCallback(async (userId: string) => {
+    setLoading(true);
+    try {
+        const collections = {
+            patients: setPatients,
+            medicines: setMedicines,
+            prescriptions: setPrescriptions,
+            dispensations: setDispensations,
+        };
+
+        const userDocRef = doc(db, "users", userId);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists() || !userDocSnap.data()?.dataSeeded) {
+             const { initialPatients, initialMedicines, initialPrescriptions, initialDispensations } = await seedInitialData(userId);
+             setPatients(initialPatients);
+             setMedicines(initialMedicines);
+             setPrescriptions(initialPrescriptions);
+             setDispensations(initialDispensations);
+             await setDoc(userDocRef, { dataSeeded: true });
+        } else {
+            for (const [name, setter] of Object.entries(collections)) {
+                const querySnapshot = await getDocs(collection(db, "users", userId, name));
+                const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+                setter(data);
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        toast({ title: "Ошибка загрузки данных", description: "Не удалось получить данные из базы.", variant: "destructive"});
+    } finally {
+        setLoading(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
-    // This effect ensures we only stop loading on the client-side,
-    // preventing hydration mismatches.
-    setLoading(false);
-  }, []);
+    if (user) {
+      fetchData(user.uid);
+    } else {
+      setLoading(false);
+      setPatients([]);
+      setMedicines([]);
+      setPrescriptions([]);
+      setDispensations([]);
+    }
+  }, [user, fetchData]);
+
+  const getCollectionRef = (collectionName: string) => {
+      if (!user) throw new Error("Пользователь не аутентифицирован.");
+      return collection(db, "users", user.uid, collectionName);
+  }
 
   // --- PATIENTS ---
-  const addPatient = (patient: Omit<Patient, 'id'>) => {
-    const newPatient = { ...patient, id: Date.now().toString() };
+  const addPatient = async (patient: Omit<Patient, 'id'>) => {
+    const newPatient = { ...patient, id: doc(collection(db, '_')).id };
+    const docRef = doc(getCollectionRef('patients'), newPatient.id);
+    await setDoc(docRef, patient);
     setPatients(prev => [...prev, newPatient]);
   };
 
-  const updatePatient = (updatedPatient: Patient) => {
+  const updatePatient = async (updatedPatient: Patient) => {
+    const docRef = doc(getCollectionRef('patients'), updatedPatient.id);
+    await setDoc(docRef, { ...updatedPatient }, { merge: true });
     setPatients(prev => prev.map(p => p.id === updatedPatient.id ? updatedPatient : p));
   };
 
-  const deletePatient = (patientId: string) => {
+  const deletePatient = async (patientId: string) => {
+    const batch = writeBatch(db);
+    batch.delete(doc(getCollectionRef('patients'), patientId));
+    prescriptions.filter(p => p.patientId === patientId).forEach(p => batch.delete(doc(getCollectionRef('prescriptions'), p.id)));
+    dispensations.filter(d => d.patientId === patientId).forEach(d => batch.delete(doc(getCollectionRef('dispensations'), d.id)));
+    await batch.commit();
+
     setPatients(prev => prev.filter(p => p.id !== patientId));
     setPrescriptions(prev => prev.filter(p => p.patientId !== patientId));
     setDispensations(prev => prev.filter(d => d.patientId !== patientId));
   };
   
   // --- MEDICINES ---
-  const addMedicine = (medicine: Omit<Medicine, 'id'>) => {
-    const newMedicine = { ...medicine, id: Date.now().toString() };
+ const addMedicine = async (medicine: Omit<Medicine, 'id'>) => {
+    const newMedicine = { ...medicine, id: doc(collection(db, '_')).id };
+    await setDoc(doc(getCollectionRef('medicines'), newMedicine.id), medicine);
     setMedicines(prev => [...prev, newMedicine]);
   };
 
-  const updateMedicine = (updatedMedicine: Medicine) => {
+  const updateMedicine = async (updatedMedicine: Medicine) => {
+    await setDoc(doc(getCollectionRef('medicines'), updatedMedicine.id), { ...updatedMedicine }, { merge: true });
     setMedicines(prev => prev.map(m => m.id === updatedMedicine.id ? updatedMedicine : m));
   };
 
-  const deleteMedicine = (medicineId: string) => {
+  const deleteMedicine = async (medicineId: string) => {
+     const batch = writeBatch(db);
+    batch.delete(doc(getCollectionRef('medicines'), medicineId));
+    prescriptions.filter(p => p.medicineId === medicineId).forEach(p => batch.delete(doc(getCollectionRef('prescriptions'), p.id)));
+    dispensations.filter(d => d.medicineId === medicineId).forEach(d => batch.delete(doc(getCollectionRef('dispensations'), d.id)));
+    await batch.commit();
+
     setMedicines(prev => prev.filter(m => m.id !== medicineId));
     setPrescriptions(prev => prev.filter(p => p.medicineId !== medicineId));
     setDispensations(prev => prev.filter(d => d.medicineId !== medicineId));
   };
 
+
   // --- PRESCRIPTIONS ---
-  const addPrescription = (prescription: Omit<Prescription, 'id' | 'annualRequirement'>) => {
-    const medicine = medicines.find(m => m.id === prescription.medicineId);
+ const addPrescription = async (data: Omit<Prescription, 'id' | 'annualRequirement'>) => {
+    const medicine = medicines.find(m => m.id === data.medicineId);
     if (!medicine) {
       toast({ title: 'Ошибка', description: 'Медикамент не найден.', variant: 'destructive' });
       return;
     }
-    const annualRequirement = (prescription.dailyConsumption * 365) / medicine.packaging;
-
-    const existing = prescriptions.find(p => p.patientId === prescription.patientId && p.medicineId === prescription.medicineId);
+    const annualRequirement = (data.dailyConsumption * 365) / medicine.packaging;
+    
+    const existing = prescriptions.find(p => p.patientId === data.patientId && p.medicineId === data.medicineId);
 
     if (existing) {
-       toast({
-          title: 'Назначение обновлено',
-          description: `Назначение для этого пациента и препарата уже существует. Данные были обновлены.` 
-      });
-      updatePrescription({ ...existing, ...prescription, annualRequirement });
+       toast({ title: 'Назначение обновлено', description: `Назначение для этого пациента и препарата уже существует. Данные были обновлены.` });
+       await updatePrescription({ ...existing, ...data, annualRequirement });
     } else {
-       toast({
-          title: 'Назначение добавлено',
-          description: 'Новое назначение было успешно добавлено.',
-      });
-      const newPrescription = { ...prescription, annualRequirement, id: Date.now().toString() };
-      setPrescriptions(prev => [...prev, newPrescription]);
+       const newPrescription = { ...data, annualRequirement, id: doc(collection(db, '_')).id };
+       await setDoc(doc(getCollectionRef('prescriptions'), newPrescription.id), { ...data, annualRequirement});
+       setPrescriptions(prev => [...prev, newPrescription]);
+       toast({ title: 'Назначение добавлено', description: 'Новое назначение было успешно добавлено.' });
     }
   };
 
-  const updatePrescription = (updatedPrescription: Prescription) => {
+  const updatePrescription = async (updatedPrescription: Prescription) => {
+    await setDoc(doc(getCollectionRef('prescriptions'), updatedPrescription.id), { ...updatedPrescription }, { merge: true });
     setPrescriptions(prev => prev.map(p => p.id === updatedPrescription.id ? updatedPrescription : p));
   };
   
-  const deletePrescription = (prescriptionId: string) => {
+  const deletePrescription = async (prescriptionId: string) => {
+    await writeBatch(db).delete(doc(getCollectionRef('prescriptions'), prescriptionId)).commit();
     setPrescriptions(prev => prev.filter(p => p.id !== prescriptionId));
   };
   
   // --- DISPENSATIONS ---
-  const addDispensation = (dispensation: Omit<Dispensation, 'id'>) => {
-    const newDispensation = { ...dispensation, id: Date.now().toString() };
+  const addDispensation = async (dispensation: Omit<Dispensation, 'id'>) => {
+    const newDispensation = { ...dispensation, id: doc(collection(db, '_')).id };
+    await setDoc(doc(getCollectionRef('dispensations'), newDispensation.id), dispensation);
     setDispensations(prev => [...prev, newDispensation]);
   };
   
-  const updateDispensation = (updatedDispensation: Dispensation) => {
+  const updateDispensation = async (updatedDispensation: Dispensation) => {
+    await setDoc(doc(getCollectionRef('dispensations'), updatedDispensation.id), { ...updatedDispensation }, { merge: true });
     setDispensations(prev => prev.map(d => d.id === updatedDispensation.id ? updatedDispensation : d));
   };
 
-  const deleteDispensation = (dispensationId: string) => {
+  const deleteDispensation = async (dispensationId: string) => {
+    await writeBatch(db).delete(doc(getCollectionRef('dispensations'), dispensationId)).commit();
     setDispensations(prev => prev.filter(d => d.id !== dispensationId));
   };
 
-  const value = {
+  const value: AppContextType = {
     patients,
     medicines,
     prescriptions,
