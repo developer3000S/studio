@@ -14,7 +14,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Prescription } from '@/types';
 import { useAppContext } from '@/context/AppContext';
-import { useToast } from '@/hooks/use-toast';
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
@@ -39,7 +38,6 @@ const formSchema = z.object({
 
 export function PrescriptionForm({ isOpen, onClose, prescription }: PrescriptionFormProps) {
   const { patients, medicines, addPrescription, updatePrescription } = useAppContext();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -68,7 +66,7 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
 
   const calculateAnnualRequirement = () => {
     const medicine = selectedMedicine;
-    if (medicine && dailyConsumption > 0) {
+    if (medicine && dailyConsumption > 0 && medicine.packaging > 0) {
       const unitsPerDay = dailyConsumption;
       const daysInYear = 365;
       const packagingSize = medicine.packaging;
@@ -80,18 +78,16 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-        const annualRequirement = calculateAnnualRequirement();
-        
         if (prescription) {
-            const prescriptionData = { ...prescription, ...data, annualRequirement };
+            const prescriptionData = { ...prescription, ...data, annualRequirement: calculateAnnualRequirement() };
             await updatePrescription(prescriptionData);
         } else {
-            const prescriptionData = { ...data, annualRequirement };
-            await addPrescription(prescriptionData);
+            // The annualRequirement is calculated on the server, so we don't need to pass it here.
+            await addPrescription(data);
         }
         onClose();
     } catch (e: any) {
-        toast({ title: 'Ошибка', description: e.message, variant: 'destructive' });
+        // Error is handled by context
     } finally {
         setIsSubmitting(false);
     }
@@ -111,9 +107,25 @@ export function PrescriptionForm({ isOpen, onClose, prescription }: Prescription
     });
     onClose();
   };
+  
+  React.useEffect(() => {
+    if(isOpen) {
+       reset(prescription ? { 
+        patientId: prescription.patientId, 
+        medicineId: prescription.medicineId, 
+        dailyDose: prescription.dailyDose,
+        dailyConsumption: prescription.dailyConsumption,
+     } : { 
+        patientId: '', 
+        medicineId: '', 
+        dailyDose: '', 
+        dailyConsumption: '' as any 
+    });
+    }
+  }, [isOpen, prescription, reset]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{prescription ? 'Редактировать назначение' : 'Добавить назначение'}</DialogTitle>

@@ -1,7 +1,5 @@
 'use client';
-
 import type { Patient, Medicine, Prescription, Dispensation } from "@/types";
-import { generateInitialData } from "@/lib/mock-data";
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,26 +21,25 @@ interface AppContextType {
   addDispensation: (dispensation: Omit<Dispensation, 'id'>) => Promise<void>;
   updateDispensation: (dispensation: Dispensation) => Promise<void>;
   deleteDispensation: (dispensationId: string) => Promise<void>;
+  fetchData: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const saveDataToLocalStorage = (key: string, data: any) => {
-    try {
-        localStorage.setItem(key, JSON.stringify(data));
-    } catch (error) {
-        console.error("Error saving to localStorage", error);
-    }
-}
+async function apiRequest<T>(url: string, method: string, body?: any): Promise<T> {
+    const response = await fetch(url, {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: body ? JSON.stringify(body) : null,
+    });
 
-const loadDataFromLocalStorage = (key: string, fallback: any) => {
-    try {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : fallback;
-    } catch (error) {
-        console.error("Error loading from localStorage", error);
-        return fallback;
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'API request failed');
     }
+    return response.json();
 }
 
 
@@ -55,104 +52,160 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [dispensations, setDispensations] = useState<Dispensation[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
-    const { initialPatients, initialMedicines, initialPrescriptions, initialDispensations } = generateInitialData();
-    
-    setPatients(loadDataFromLocalStorage('patients', initialPatients));
-    setMedicines(loadDataFromLocalStorage('medicines', initialMedicines));
-    setPrescriptions(loadDataFromLocalStorage('prescriptions', initialPrescriptions));
-    setDispensations(loadDataFromLocalStorage('dispensations', initialDispensations));
-    
-    setLoading(false);
-  }, []);
+    try {
+        const [patientsData, medicinesData, prescriptionsData, dispensationsData] = await Promise.all([
+            apiRequest<Patient[]>('/api/patients', 'GET'),
+            apiRequest<Medicine[]>('/api/medicines', 'GET'),
+            apiRequest<Prescription[]>('/api/prescriptions', 'GET'),
+            apiRequest<Dispensation[]>('/api/dispensations', 'GET'),
+        ]);
+        setPatients(patientsData);
+        setMedicines(medicinesData);
+        setPrescriptions(prescriptionsData);
+        setDispensations(dispensationsData);
+    } catch (error: any) {
+        toast({ title: "Ошибка загрузки данных", description: error.message, variant: "destructive" });
+    } finally {
+        setLoading(false);
+    }
+  }, [toast]);
 
-  useEffect(() => { saveDataToLocalStorage('patients', patients) }, [patients]);
-  useEffect(() => { saveDataToLocalStorage('medicines', medicines) }, [medicines]);
-  useEffect(() => { saveDataToLocalStorage('prescriptions', prescriptions) }, [prescriptions]);
-  useEffect(() => { saveDataToLocalStorage('dispensations', dispensations) }, [dispensations]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
+  const handleError = (error: any, defaultMessage: string) => {
+    toast({
+        title: "Ошибка",
+        description: error.message || defaultMessage,
+        variant: "destructive"
+    });
+  }
 
   // --- PATIENTS ---
   const addPatient = async (patientData: Omit<Patient, 'id'>) => {
-    const newId = `patient-${Date.now()}`;
-    const newPatient = { ...patientData, id: newId };
-    setPatients(prev => [...prev, newPatient]);
+    try {
+        const newPatient = await apiRequest<Patient>('/api/patients', 'POST', patientData);
+        setPatients(prev => [...prev, newPatient]);
+        toast({ title: "Пациент добавлен" });
+    } catch (error) {
+        handleError(error, "Не удалось добавить пациента");
+    }
   };
 
   const updatePatient = async (updatedPatient: Patient) => {
-    setPatients(prev => prev.map(p => p.id === updatedPatient.id ? updatedPatient : p));
+    try {
+        const result = await apiRequest<Patient>(`/api/patients/${updatedPatient.id}`, 'PUT', updatedPatient);
+        setPatients(prev => prev.map(p => p.id === result.id ? result : p));
+        toast({ title: "Пациент обновлен" });
+    } catch (error) {
+        handleError(error, "Не удалось обновить пациента");
+    }
   };
 
   const deletePatient = async (patientId: string) => {
-    setPatients(prev => prev.filter(p => p.id !== patientId));
-    setPrescriptions(prev => prev.filter(p => p.patientId !== patientId));
-    setDispensations(prev => prev.filter(d => d.patientId !== patientId));
+    try {
+        await apiRequest(`/api/patients/${patientId}`, 'DELETE');
+        setPatients(prev => prev.filter(p => p.id !== patientId));
+        toast({ title: "Пациент удален" });
+    } catch (error) {
+        handleError(error, "Не удалось удалить пациента");
+    }
   };
   
   // --- MEDICINES ---
  const addMedicine = async (medicineData: Omit<Medicine, 'id'>) => {
-    const newId = `med-${Date.now()}`;
-    const newMedicine = { ...medicineData, id: newId };
-    setMedicines(prev => [...prev, newMedicine]);
+    try {
+        const newMedicine = await apiRequest<Medicine>('/api/medicines', 'POST', medicineData);
+        setMedicines(prev => [...prev, newMedicine]);
+        toast({ title: "Медикамент добавлен" });
+    } catch (error) {
+        handleError(error, "Не удалось добавить медикамент");
+    }
   };
 
   const updateMedicine = async (updatedMedicine: Medicine) => {
-    setMedicines(prev => prev.map(m => m.id === updatedMedicine.id ? updatedMedicine : m));
+    try {
+        const result = await apiRequest<Medicine>(`/api/medicines/${updatedMedicine.id}`, 'PUT', updatedMedicine);
+        setMedicines(prev => prev.map(m => m.id === result.id ? result : m));
+        toast({ title: "Медикамент обновлен" });
+    } catch (error) {
+        handleError(error, "Не удалось обновить медикамент");
+    }
   };
 
   const deleteMedicine = async (medicineId: string) => {
-    setMedicines(prev => prev.filter(m => m.id !== medicineId));
-    setPrescriptions(prev => prev.filter(p => p.medicineId !== medicineId));
-    setDispensations(prev => prev.filter(d => d.medicineId !== medicineId));
+    try {
+        await apiRequest(`/api/medicines/${medicineId}`, 'DELETE');
+        setMedicines(prev => prev.filter(m => m.id !== medicineId));
+        toast({ title: "Медикамент удален" });
+    } catch (error) {
+        handleError(error, "Не удалось удалить медикамент");
+    }
   };
 
-
   // --- PRESCRIPTIONS ---
- const addPrescription = async (data: Omit<Prescription, 'id' | 'annualRequirement'> & { dailyConsumption: number }) => {
-    const medicine = medicines.find(m => m.id === data.medicineId);
-    if (!medicine) {
-      toast({ title: 'Ошибка', description: 'Медикамент не найден.', variant: 'destructive' });
-      return;
-    }
-    const annualRequirement = (data.dailyConsumption * 365) / medicine.packaging;
-    
-    const existing = prescriptions.find(p => p.patientId === data.patientId && p.medicineId === data.medicineId);
-    
-    const prescriptionData = { ...data, annualRequirement };
-
-    if (existing) {
-       await updatePrescription({ ...existing, ...prescriptionData });
-       toast({ title: 'Назначение обновлено', description: `Назначение для этого пациента и препарата уже существует. Данные были обновлены.` });
-    } else {
-       const newId = `presc-${Date.now()}`;
-       const newPrescription = { ...prescriptionData, id: newId };
-       setPrescriptions(prev => [...prev, newPrescription]);
-       toast({ title: 'Назначение добавлено', description: 'Новое назначение было успешно добавлено.' });
+  const addPrescription = async (data: Omit<Prescription, 'id' | 'annualRequirement'> & { dailyConsumption: number }) => {
+     try {
+        const newPrescription = await apiRequest<Prescription>('/api/prescriptions', 'POST', data);
+        await fetchData(); // Refetch all data to ensure consistency
+        toast({ title: 'Назначение добавлено' });
+    } catch (error) {
+        handleError(error, "Не удалось добавить назначение");
     }
   };
 
   const updatePrescription = async (updatedPrescription: Prescription) => {
-    setPrescriptions(prev => prev.map(p => p.id === updatedPrescription.id ? updatedPrescription : p));
+    try {
+        const result = await apiRequest<Prescription>(`/api/prescriptions/${updatedPrescription.id}`, 'PUT', updatedPrescription);
+        await fetchData(); // Refetch all data to ensure consistency
+        toast({ title: "Назначение обновлено" });
+    } catch (error) {
+        handleError(error, "Не удалось обновить назначение");
+    }
   };
   
   const deletePrescription = async (prescriptionId: string) => {
-    setPrescriptions(prev => prev.filter(p => p.id !== prescriptionId));
+    try {
+        await apiRequest(`/api/prescriptions/${prescriptionId}`, 'DELETE');
+        setPrescriptions(prev => prev.filter(p => p.id !== prescriptionId));
+        toast({ title: "Назначение удалено" });
+    } catch (error) {
+        handleError(error, "Не удалось удалить назначение");
+    }
   };
   
   // --- DISPENSATIONS ---
   const addDispensation = async (dispensationData: Omit<Dispensation, 'id'>) => {
-    const newId = `disp-${Date.now()}`;
-    const newDispensation = { ...dispensationData, id: newId };
-    setDispensations(prev => [...prev, newDispensation]);
+    try {
+        const newDispensation = await apiRequest<Dispensation>('/api/dispensations', 'POST', dispensationData);
+        setDispensations(prev => [...prev, newDispensation]);
+        toast({ title: "Выдача добавлена" });
+    } catch (error) {
+        handleError(error, "Не удалось добавить выдачу");
+    }
   };
   
   const updateDispensation = async (updatedDispensation: Dispensation) => {
-    setDispensations(prev => prev.map(d => d.id === updatedDispensation.id ? updatedDispensation : d));
+     try {
+        const result = await apiRequest<Dispensation>(`/api/dispensations/${updatedDispensation.id}`, 'PUT', updatedDispensation);
+        setDispensations(prev => prev.map(d => d.id === result.id ? result : d));
+        toast({ title: "Выдача обновлена" });
+    } catch (error) {
+        handleError(error, "Не удалось обновить выдачу");
+    }
   };
 
   const deleteDispensation = async (dispensationId: string) => {
-    setDispensations(prev => prev.filter(d => d.id !== dispensationId));
+    try {
+        await apiRequest(`/api/dispensations/${dispensationId}`, 'DELETE');
+        setDispensations(prev => prev.filter(d => d.id !== dispensationId));
+        toast({ title: "Выдача удалена" });
+    } catch (error) {
+        handleError(error, "Не удалось удалить выдачу");
+    }
   };
 
   const value: AppContextType = {
@@ -173,6 +226,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addDispensation,
     updateDispensation,
     deleteDispensation,
+    fetchData,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

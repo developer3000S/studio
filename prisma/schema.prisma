@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Patient {
+  id               String          @id @default(cuid())
+  fio              String
+  birthYear        Int
+  diagnosis        String
+  attendingDoctor  String
+  prescriptions    Prescription[]
+  dispensations    Dispensation[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model Medicine {
+  id                       String         @id @default(cuid())
+  smmnNodeCode             String
+  section                  String
+  standardizedMnn          String
+  tradeNameVk              String
+  standardizedDosageForm   String
+  standardizedDosage       String
+  characteristic           String
+  packaging                Float
+  price                    Float
+  prescriptions            Prescription[]
+  dispensations            Dispensation[]
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+}
+
+model Prescription {
+  id                String       @id @default(cuid())
+  patient           Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientId         String
+  medicine          Medicine     @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  medicineId        String
+  dailyDose         String
+  dailyConsumption  Float
+  annualRequirement Float
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([patientId, medicineId])
+}
+
+model Dispensation {
+  id                String   @id @default(cuid())
+  patient           Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientId         String
+  medicine          Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  medicineId        String
+  dispensationDate  DateTime
+  quantity          Float
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
