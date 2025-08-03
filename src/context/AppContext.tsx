@@ -9,6 +9,7 @@ interface AppContextType {
   prescriptions: Prescription[];
   dispensations: Dispensation[];
   loading: boolean;
+  error: string | null;
   addPatient: (patient: Omit<Patient, 'id'>) => Promise<void>;
   updatePatient: (patient: Patient) => Promise<void>;
   deletePatient: (patientId: string) => Promise<void>;
@@ -29,15 +30,21 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 async function apiRequest<T>(url: string, method: string, body?: any): Promise<T> {
     const response = await fetch(url, {
         method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: body ? JSON.stringify(body) : null,
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'API request failed');
+        let errorData;
+        try {
+            errorData = await response.json();
+        } catch (e) {
+            errorData = { error: `HTTP error! status: ${response.status}` };
+        }
+        throw new Error(errorData.error || `Request failed with status ${response.status}`);
+    }
+     if (response.status === 204) {
+        return null as T;
     }
     return response.json();
 }
@@ -51,9 +58,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [dispensations, setDispensations] = useState<Dispensation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
         const [patientsData, medicinesData, prescriptionsData, dispensationsData] = await Promise.all([
             apiRequest<Patient[]>('/api/patients', 'GET'),
@@ -65,8 +74,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setMedicines(medicinesData);
         setPrescriptions(prescriptionsData);
         setDispensations(dispensationsData);
-    } catch (error: any) {
-        toast({ title: "Ошибка загрузки данных", description: error.message, variant: "destructive" });
+    } catch (err: any) {
+        const errorMessage = "Не удалось загрузить данные. Убедитесь, что сервер запущен и база данных доступна. Проверьте переменную DATABASE_URL в .env файле и выполните 'npx prisma db push'.";
+        setError(errorMessage);
+        toast({ title: "Ошибка загрузки данных", description: errorMessage, variant: "destructive", duration: 10000 });
     } finally {
         setLoading(false);
     }
@@ -88,7 +99,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addPatient = async (patientData: Omit<Patient, 'id'>) => {
     try {
         const newPatient = await apiRequest<Patient>('/api/patients', 'POST', patientData);
-        setPatients(prev => [...prev, newPatient]);
+        setPatients(prev => [...prev, newPatient].sort((a,b) => a.fio.localeCompare(b.fio)));
         toast({ title: "Пациент добавлен" });
     } catch (error) {
         handleError(error, "Не удалось добавить пациента");
@@ -109,6 +120,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
         await apiRequest(`/api/patients/${patientId}`, 'DELETE');
         setPatients(prev => prev.filter(p => p.id !== patientId));
+        // Also remove related prescriptions and dispensations from local state
+        setPrescriptions(prev => prev.filter(p => p.patientId !== patientId));
+        setDispensations(prev => prev.filter(d => d.patientId !== patientId));
         toast({ title: "Пациент удален" });
     } catch (error) {
         handleError(error, "Не удалось удалить пациента");
@@ -119,7 +133,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
  const addMedicine = async (medicineData: Omit<Medicine, 'id'>) => {
     try {
         const newMedicine = await apiRequest<Medicine>('/api/medicines', 'POST', medicineData);
-        setMedicines(prev => [...prev, newMedicine]);
+        setMedicines(prev => [...prev, newMedicine].sort((a,b) => a.standardizedMnn.localeCompare(b.standardizedMnn)));
         toast({ title: "Медикамент добавлен" });
     } catch (error) {
         handleError(error, "Не удалось добавить медикамент");
@@ -140,6 +154,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
         await apiRequest(`/api/medicines/${medicineId}`, 'DELETE');
         setMedicines(prev => prev.filter(m => m.id !== medicineId));
+         // Also remove related prescriptions and dispensations from local state
+        setPrescriptions(prev => prev.filter(p => p.medicineId !== medicineId));
+        setDispensations(prev => prev.filter(d => d.medicineId !== medicineId));
         toast({ title: "Медикамент удален" });
     } catch (error) {
         handleError(error, "Не удалось удалить медикамент");
@@ -149,9 +166,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // --- PRESCRIPTIONS ---
   const addPrescription = async (data: Omit<Prescription, 'id' | 'annualRequirement'> & { dailyConsumption: number }) => {
      try {
-        const newPrescription = await apiRequest<Prescription>('/api/prescriptions', 'POST', data);
-        await fetchData(); // Refetch all data to ensure consistency
-        toast({ title: 'Назначение добавлено' });
+        const result = await apiRequest<Prescription>('/api/prescriptions', 'POST', data);
+        if (prescriptions.some(p => p.id === result.id)) {
+           setPrescriptions(prev => prev.map(p => p.id === result.id ? result : p));
+        } else {
+           setPrescriptions(prev => [...prev, result]);
+        }
+        toast({ title: 'Назначение добавлено/обновлено' });
     } catch (error) {
         handleError(error, "Не удалось добавить назначение");
     }
@@ -160,7 +181,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updatePrescription = async (updatedPrescription: Prescription) => {
     try {
         const result = await apiRequest<Prescription>(`/api/prescriptions/${updatedPrescription.id}`, 'PUT', updatedPrescription);
-        await fetchData(); // Refetch all data to ensure consistency
+        setPrescriptions(prev => prev.map(p => p.id === result.id ? result : p));
         toast({ title: "Назначение обновлено" });
     } catch (error) {
         handleError(error, "Не удалось обновить назначение");
@@ -181,7 +202,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addDispensation = async (dispensationData: Omit<Dispensation, 'id'>) => {
     try {
         const newDispensation = await apiRequest<Dispensation>('/api/dispensations', 'POST', dispensationData);
-        setDispensations(prev => [...prev, newDispensation]);
+        setDispensations(prev => [...prev, newDispensation].sort((a,b) => new Date(b.dispensationDate).getTime() - new Date(a.dispensationDate).getTime()));
         toast({ title: "Выдача добавлена" });
     } catch (error) {
         handleError(error, "Не удалось добавить выдачу");
@@ -214,6 +235,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     prescriptions,
     dispensations,
     loading,
+    error,
     addPatient,
     updatePatient,
     deletePatient,
@@ -239,3 +261,5 @@ export function useAppContext() {
   }
   return context;
 }
+
+    
