@@ -5,9 +5,6 @@ import { generateInitialData } from "@/lib/mock-data";
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-// Mock user ID for local data
-const MOCK_USER_ID = "local-user";
-
 interface AppContextType {
   patients: Patient[];
   medicines: Medicine[];
