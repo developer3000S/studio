@@ -20,31 +20,41 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('LoginPage: Начало процесса входа.');
     setError(null);
     setLoading(true);
     try {
+      console.log('LoginPage: Вызов функции login из AuthContext.');
       await login(email, password);
+      console.log('LoginPage: Вход успешен, перенаправление на /dashboard.');
       router.push('/dashboard');
     } catch (err: any) {
+      console.error('LoginPage: Ошибка при входе:', err);
       if (err.code === 'auth/invalid-credential') {
         setError('Неверный email или пароль.');
       } else {
         setError(err.message);
       }
     } finally {
+        console.log('LoginPage: Завершение процесса входа.');
         setLoading(false);
     }
   };
 
   const handleDemoLogin = async () => {
+    console.log('LoginPage: Начало процесса демо-входа.');
     setError(null);
     setIsDemoLoading(true);
     try {
+        console.log('LoginPage: Вызов функции demoLogin из AuthContext.');
         await demoLogin();
+        console.log('LoginPage: Демо-вход успешен, перенаправление на /dashboard.');
         router.push('/dashboard');
     } catch (err: any) {
+        console.error('LoginPage: Ошибка при демо-входе:', err);
         setError(err.message);
     } finally {
+        console.log('LoginPage: Завершение процесса демо-входа.');
         setIsDemoLoading(false);
     }
   }
@@ -88,14 +98,12 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             />
         </div>
-        <div className="grid gap-4">
-          <Button type="submit" className="w-full" disabled={loading || isDemoLoading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Войти"}
-          </Button>
-           <Button type="button" variant="secondary" className="w-full" disabled={loading || isDemoLoading} onClick={handleDemoLogin}>
-              {isDemoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Демо-вход"}
-          </Button>
-        </div>
+        <Button type="submit" className="w-full" disabled={loading || isDemoLoading}>
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Войти"}
+        </Button>
+        <Button type="button" variant="secondary" className="w-full" disabled={loading || isDemoLoading} onClick={handleDemoLogin}>
+            {isDemoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Демо-вход"}
+        </Button>
       </form>
       <div className="mt-4 text-center text-sm">
         Нет аккаунта?{' '}

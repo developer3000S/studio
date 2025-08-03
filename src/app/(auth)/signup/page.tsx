@@ -21,20 +21,26 @@ export default function SignupPage() {
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('SignupPage: Начало процесса регистрации.');
         if (password.length < 6) {
+             console.log('SignupPage: Ошибка валидации - пароль < 6 символов.');
              setError('Пароль должен быть не менее 6 символов.');
              return;
         }
         if (password !== confirmPassword) {
+            console.log('SignupPage: Ошибка валидации - пароли не совпадают.');
             setError('Пароли не совпадают');
             return;
         }
         setError(null);
         setLoading(true);
         try {
+            console.log('SignupPage: Вызов функции signup из AuthContext.');
             await signup(email, password);
+            console.log('SignupPage: Регистрация успешна, перенаправление на /dashboard.');
             router.push('/dashboard');
         } catch (err: any) {
+            console.error('SignupPage: Ошибка при регистрации:', err);
             if (err.code === 'auth/email-already-in-use') {
                 setError('Этот email уже зарегистрирован.');
             } else if (err.code === 'auth/invalid-email') {
@@ -44,6 +50,7 @@ export default function SignupPage() {
                 setError(err.message);
             }
         } finally {
+            console.log('SignupPage: Завершение процесса регистрации.');
             setLoading(false);
         }
     };
