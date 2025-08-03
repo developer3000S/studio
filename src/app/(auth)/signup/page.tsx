@@ -21,6 +21,10 @@ export default function SignupPage() {
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (password.length < 6) {
+             setError('Пароль должен быть не менее 6 символов.');
+             return;
+        }
         if (password !== confirmPassword) {
             setError('Пароли не совпадают');
             return;
@@ -31,7 +35,14 @@ export default function SignupPage() {
             await signup(email, password);
             router.push('/dashboard');
         } catch (err: any) {
-            setError(err.message);
+            if (err.code === 'auth/email-already-in-use') {
+                setError('Этот email уже зарегистрирован.');
+            } else if (err.code === 'auth/invalid-email') {
+                setError('Некорректный формат email.');
+            }
+            else {
+                setError(err.message);
+            }
         } finally {
             setLoading(false);
         }
@@ -93,3 +104,6 @@ export default function SignupPage() {
                     Войти
                 </Link>
             </div>
+        </>
+    );
+}

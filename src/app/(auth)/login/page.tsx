@@ -25,7 +25,11 @@ export default function LoginPage() {
       await login(email, password);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message);
+      if (err.code === 'auth/invalid-credential') {
+        setError('Неверный email или пароль.');
+      } else {
+        setError(err.message);
+      }
     } finally {
         setLoading(false);
     }
@@ -79,3 +83,6 @@ export default function LoginPage() {
           Зарегистрироваться
         </Link>
       </div>
+    </>
+  );
+}

@@ -1,8 +1,11 @@
-import { ReactNode } from "react";
+'use client';
+import type { ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Image from "next/image";
+import { AuthProvider } from "@/context/AuthContext";
+import { Loader2 } from "lucide-react";
 
 const AuthLayoutContent = ({ children }: { children: ReactNode }) => {
     const { user, loading } = useAuth();
@@ -13,6 +16,19 @@ const AuthLayoutContent = ({ children }: { children: ReactNode }) => {
             router.replace('/dashboard');
         }
     }, [user, loading, router]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        )
+    }
+
+    if (user) {
+        return null; // или другой лоадер/пустой компонент, пока происходит редирект
+    }
+
 
     return (
         <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
@@ -36,5 +52,9 @@ const AuthLayoutContent = ({ children }: { children: ReactNode }) => {
 }
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
-    return <AuthLayoutContent>{children}</AuthLayoutContent>;
+    return (
+        <AuthProvider>
+            <AuthLayoutContent>{children}</AuthLayoutContent>
+        </AuthProvider>
+    );
 }
