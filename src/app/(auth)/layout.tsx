@@ -39,11 +39,11 @@ const AuthLayoutContent = ({ children }: { children: ReactNode }) => {
           </div>
           <div className="hidden bg-muted lg:block">
             <Image
-              src="https://placehold.co/1920x1080/f0f8ff/87ceeb.png"
-              alt="Image"
+              src="/pharmacy.jpg"
+              alt="Современная аптека с персоналом"
               width="1920"
               height="1080"
-              data-ai-hint="futuristic pharmacy"
+              data-ai-hint="modern pharmacy"
               className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
             />
           </div>
