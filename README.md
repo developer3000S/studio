@@ -9,6 +9,7 @@
 *   **AI-аналитика**: Использует Google Gemini для генерации аналитических отчетов по данным системы.
 *   **Отчетность**: Генерирует сводные отчеты с возможностью печати и экспорта в CSV.
 *   **Адаптивный дизайн**: Корректно отображается как на настольных компьютерах, так и на мобильных устройствах.
+*   **Локальная аутентификация**: Используется простая система имитации входа без внешних зависимостей.
 
 ## Технологический стек
 
@@ -41,23 +42,16 @@ npm install
 
 ### 3. Настройте переменные окружения
 
-Функционал AI-аналитики и аутентификация требуют ключи API.
+Функционал AI-аналитики требует ключ API.
 
 1.  Создайте файл `.env` в корневой папке проекта.
 2.  Скопируйте в него следующее содержимое:
 
     ```env
-    NEXT_PUBLIC_FIREBASE_API_KEY="ВАШ_FIREBASE_API_КЛЮЧ"
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="ВАШ_FIREBASE_AUTH_DOMAIN"
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID="ВАШ_FIREBASE_PROJECT_ID"
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="ВАШ_FIREBASE_STORAGE_BUCKET"
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="ВАШ_FIREBASE_MESSAGING_SENDER_ID"
-    NEXT_PUBLIC_FIREBASE_APP_ID="ВАШ_FIREBASE_APP_ID"
-    
     GEMINI_API_KEY="ВАШ_GEMINI_API_КЛЮЧ"
     ```
 
-3.  Замените `"ВАШ_..."` на ваши реальные ключи, полученные в [Firebase Console](https://console.firebase.google.com/) и [Google AI Studio](https://aistudio.google.com/app/apikey). **Обратите внимание на префикс `NEXT_PUBLIC_` для ключей Firebase, он обязателен.**
+3.  Замените `"ВАШ_GEMINI_API_КЛЮЧ"` на ваш реальный ключ, полученный в [Google AI Studio](https://aistudio.google.com/app/apikey).
 
 ### 4. Запустите сервер для разработки
 

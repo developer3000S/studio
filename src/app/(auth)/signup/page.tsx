@@ -35,14 +35,7 @@ export default function SignupPage() {
             await signup(email, password);
             router.push('/dashboard');
         } catch (err: any) {
-            if (err.code === 'auth/email-already-in-use') {
-                setError('Этот email уже зарегистрирован.');
-            } else if (err.code === 'auth/invalid-email') {
-                setError('Некорректный формат email.');
-            }
-            else {
-                setError(err.message);
-            }
+            setError(err.message);
         } finally {
             setLoading(false);
         }

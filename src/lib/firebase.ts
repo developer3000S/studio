@@ -1,5 +1,4 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, initializeAuth, indexedDBLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -13,9 +12,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = initializeAuth(app, {
-    persistence: indexedDBLocalPersistence
-});
+// Auth is no longer managed here
 const db = getFirestore(app);
 
-export { app, auth, db };
+export { app, db };

@@ -26,11 +26,7 @@ export default function LoginPage() {
       await login(email, password);
       router.push('/dashboard');
     } catch (err: any) {
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/network-request-failed') {
-        setError('Неверный email или пароль, или произошла сетевая ошибка.');
-      } else {
-        setError(err.message);
-      }
+      setError(err.message);
     } finally {
         setLoading(false);
     }
@@ -40,9 +36,13 @@ export default function LoginPage() {
     setError(null);
     setIsDemoLoading(true);
     try {
+        console.log("Login page: Calling demoLogin");
         await demoLogin();
+        console.log("Login page: demoLogin successful, redirecting");
         router.push('/dashboard');
-    } catch (err: any) {
+    } catch (err: any)
+    {
+        console.error("Login page: demoLogin failed", err);
         setError('Ошибка демо-входа: ' + err.message);
     } finally {
         setIsDemoLoading(false);

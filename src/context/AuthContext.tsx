@@ -1,73 +1,72 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, User, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+// Mock user type. Can be expanded if needed.
+interface MockUser {
+  email: string;
+  isDemo: boolean;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: MockUser | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<any>;
-  signup: (email: string, pass: string) => Promise<any>;
+  login: (email: string, pass: string) => Promise<void>;
+  signup: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   demoLogin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// A mock user for the demo session
+const demoUser: MockUser = {
+    email: 'demo@example.com',
+    isDemo: true,
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<MockUser | null>(null);
+  // Set loading to false initially as we don't need to wait for Firebase
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => {
-      unsubscribe();
-    }
-  }, []);
-
-  const login = (email: string, pass: string) => {
-    return signInWithEmailAndPassword(auth, email, pass);
+  // All auth functions are now simple async functions that set a mock user
+  const login = async (email: string, pass: string) => {
+    setLoading(true);
+    console.log(`Attempting login for ${email}`);
+    // Simulate a network delay
+    await new Promise(res => setTimeout(res, 500));
+    setUser({ email, isDemo: false });
+    setLoading(false);
   }
 
-  const signup = (email: string, pass: string) => {
-    return createUserWithEmailAndPassword(auth, email, pass);
+  const signup = async (email: string, pass: string) => {
+    setLoading(true);
+    console.log(`Attempting signup for ${email}`);
+    // Simulate a network delay
+    await new Promise(res => setTimeout(res, 500));
+    setUser({ email, isDemo: false });
+    setLoading(false);
   }
-
-  const logout = () => {
-    return signOut(auth);
-  };
   
   const demoLogin = async () => {
-    const demoEmail = "demo@example.com";
-    const demoPassword = "password123";
-    try {
-        await signInWithEmailAndPassword(auth, demoEmail, demoPassword);
-    } catch(error: any) {
-        if(error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
-            try {
-               await createUserWithEmailAndPassword(auth, demoEmail, demoPassword)
-            } catch (signupError: any) {
-                if (signupError.code !== 'auth/email-already-in-use') {
-                    throw signupError;
-                }
-                // If user already exists due to a race condition, sign in again.
-                await signInWithEmailAndPassword(auth, demoEmail, demoPassword);
-            }
-        } else {
-            throw error;
-        }
-    }
+    setLoading(true);
+    console.log("Attempting demo login...");
+    // Simulate a network delay
+    await new Promise(res => setTimeout(res, 500));
+    setUser(demoUser);
+    setLoading(false);
+    console.log("Demo user set.");
   }
 
+  const logout = async () => {
+    setLoading(true);
+    console.log("Logging out.");
+    await new Promise(res => setTimeout(res, 500));
+    setUser(null);
+    setLoading(false);
+  };
+  
   const value = {
     user,
     loading,
