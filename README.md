@@ -15,7 +15,7 @@
 *   **Фреймворк**: Next.js (с App Router)
 *   **UI**: React, ShadCN UI, Tailwind CSS
 *   **Управление состоянием**: React Context API
-*   **Искусственный интеллект**: Google Generative AI (`@google/generative-ai`)
+*   **Искусственный интеллект**: Genkit с Google Gemini
 *   **Язык**: TypeScript
 
 ## Системные требования
@@ -47,17 +47,17 @@ npm install
 2.  Скопируйте в него следующее содержимое:
 
     ```env
-    NEXT_PUBLIC_FIREBASE_API_KEY="ВАШ_API_КЛЮЧ"
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="ВАШ_AUTH_DOMAIN"
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID="ВАШ_PROJECT_ID"
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="ВАШ_STORAGE_BUCKET"
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="ВАШ_MESSAGING_SENDER_ID"
-    NEXT_PUBLIC_FIREBASE_APP_ID="ВАШ_APP_ID"
+    NEXT_PUBLIC_FIREBASE_API_KEY="ВАШ_FIREBASE_API_КЛЮЧ"
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="ВАШ_FIREBASE_AUTH_DOMAIN"
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID="ВАШ_FIREBASE_PROJECT_ID"
+    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="ВАШ_FIREBASE_STORAGE_BUCKET"
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="ВАШ_FIREBASE_MESSAGING_SENDER_ID"
+    NEXT_PUBLIC_FIREBASE_APP_ID="ВАШ_FIREBASE_APP_ID"
     
     GEMINI_API_KEY="ВАШ_GEMINI_API_КЛЮЧ"
     ```
 
-3.  Замените `"ВАШ_..."` на ваши реальные ключи, полученные в [Firebase Console](https://console.firebase.google.com/) и [Google AI Studio](https://aistudio.google.com/app/apikey). **Обратите внимание на префикс `NEXT_PUBLIC_` для ключей Firebase.**
+3.  Замените `"ВАШ_..."` на ваши реальные ключи, полученные в [Firebase Console](https://console.firebase.google.com/) и [Google AI Studio](https://aistudio.google.com/app/apikey). **Обратите внимание на префикс `NEXT_PUBLIC_` для ключей Firebase, он обязателен.**
 
 ### 4. Запустите сервер для разработки
 
@@ -67,7 +67,7 @@ npm install
 npm run dev
 ```
 
-После выполнения команды вы увидите в терминале адрес, по которому будет доступно приложение. Обычно это `http://localhost:9002`. Откройте эту ссылку в вашем браузере. **Важно: возможно, потребуется перезапустить сервер (`Ctrl+C` и снова `npm run dev`), чтобы изменения в `.env` файле применились.**
+После выполнения команды вы увидите в терминале адрес, по которому будет доступно приложение. Обычно это `http://localhost:9002`. Откройте эту ссылку в вашем браузере. **Важно: перезапустите сервер (`Ctrl+C` и снова `npm run dev`), чтобы изменения в `.env` файле применились.**
 
 ## Доступные скрипты
 
