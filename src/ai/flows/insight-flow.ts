@@ -13,6 +13,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import type { Patient, Medicine, Prescription, Dispensation } from '@/types';
 
 // Zod schema for the input data, ensuring type safety and validation.
@@ -39,6 +40,7 @@ export async function generateInsights(input: InsightInput): Promise<string> {
 // for the data that will be injected.
 const insightPrompt = ai.definePrompt({
   name: 'insightPrompt',
+  model: googleAI.model('gemini-1.5-flash-preview'),
   input: {
     schema: InsightInputSchema,
   },
