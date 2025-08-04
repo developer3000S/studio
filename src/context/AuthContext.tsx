@@ -43,8 +43,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setUser(getInitialUser());
-    setLoading(false);
+    try {
+      const item = window.localStorage.getItem('user');
+      if (item) {
+        setUser(JSON.parse(item));
+      }
+    } catch (error) {
+      console.warn("Error reading user from localStorage", error);
+      setUser(null);
+    } finally {
+        setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
