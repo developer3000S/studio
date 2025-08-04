@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // This effect runs only on the client, so `window` is safe to use.
     try {
       const item = window.localStorage.getItem('user');
       if (item) {

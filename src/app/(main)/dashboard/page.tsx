@@ -99,24 +99,20 @@ import { Bar, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } fr
 
 export default function DashboardPage() {
     const { patients, medicines, prescriptions, dispensations, loading } = useAppContext();
-    const [isClient, setIsClient] = useState(false);
+    const [totalDispensationsThisMonth, setTotalDispensationsThisMonth] = useState<number | null>(null);
 
     useEffect(() => {
-        setIsClient(true);
-    }, []);
+        const today = new Date();
+        const count = dispensations.filter(d => {
+            const date = new Date(d.dispensationDate);
+            return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+        }).length;
+        setTotalDispensationsThisMonth(count);
+    }, [dispensations]);
 
     const totalPatients = patients.length;
     const activePrescriptions = prescriptions.length;
     
-    const totalDispensationsThisMonth = useMemo(() => {
-        if (!isClient) return 0; // Don't calculate on server or before hydration
-        const today = new Date();
-        return dispensations.filter(d => {
-            const date = new Date(d.dispensationDate);
-            return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
-        }).length;
-    }, [dispensations, isClient]);
-
     const dispensationsByMonth = useMemo(() => {
         const months = Array.from({ length: 12 }, (_, i) => ({
             name: new Date(0, i).toLocaleString('ru-RU', { month: 'short' }),
@@ -166,7 +162,7 @@ export default function DashboardPage() {
                     <StatCard title="Всего пациентов" value={totalPatients} icon={Users} />
                     <StatCard title="Активных препаратов" value={`${medicines.length}`} icon={Pill} />
                     <StatCard title="Активных назначений" value={`${activePrescriptions}`} icon={ClipboardList} />
-                    <StatCard title="Выдач за месяц" value={isClient ? totalDispensationsThisMonth : <Loader2 className="h-6 w-6 animate-spin" />} icon={PackageCheck} />
+                    <StatCard title="Выдач за месяц" value={totalDispensationsThisMonth === null ? <Loader2 className="h-6 w-6 animate-spin" /> : totalDispensationsThisMonth} icon={PackageCheck} />
                 </>
             )}
         </div>
