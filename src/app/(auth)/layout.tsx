@@ -2,30 +2,25 @@
 import type { ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 
 const AuthLayout = ({ children }: { children: ReactNode }) => {
     const { user, loading } = useAuth();
     const router = useRouter();
-    const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
-        if (!loading) {
-            if (user) {
-                router.replace('/dashboard');
-            } else {
-                setIsChecking(false);
-            }
+        if (!loading && user) {
+            router.replace('/dashboard');
         }
     }, [user, loading, router]);
 
-    if (loading || isChecking) {
+    if (loading || user) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
+            </div>>
         )
     }
 
