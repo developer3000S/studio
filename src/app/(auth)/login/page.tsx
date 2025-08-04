@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 
@@ -14,9 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
-  const { login, demoLogin } = useAuth();
-  const router = useRouter();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,27 +21,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      router.push('/dashboard');
+      // On success, the context will redirect
     } catch (err: any) {
       setError(err.message);
     } finally {
         setLoading(false);
     }
   };
-
-  const handleDemoLogin = async () => {
-    setError(null);
-    setIsDemoLoading(true);
-    try {
-        await demoLogin();
-        router.push('/dashboard');
-    } catch (err: any)
-    {
-        setError('Ошибка демо-входа: ' + err.message);
-    } finally {
-        setIsDemoLoading(false);
-    }
-  }
 
   return (
     <>
@@ -79,17 +62,14 @@ export default function LoginPage() {
           <Input 
             id="password" 
             type="password" 
-            placeholder="***"
+            placeholder="••••••••"
             required 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             />
         </div>
-        <Button type="submit" className="w-full" disabled={loading || isDemoLoading}>
+        <Button type="submit" className="w-full" disabled={loading}>
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Войти"}
-        </Button>
-        <Button type="button" variant="secondary" className="w-full" disabled={loading || isDemoLoading} onClick={handleDemoLogin}>
-            {isDemoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Демо-вход"}
         </Button>
       </form>
       <div className="mt-4 text-center text-sm">

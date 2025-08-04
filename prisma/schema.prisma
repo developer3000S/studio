@@ -10,16 +10,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Patient {
-  id               String          @id @default(cuid())
-  fio              String
-  birthYear        Int
-  diagnosis        String
-  attendingDoctor  String
-  prescriptions    Prescription[]
-  dispensations    Dispensation[]
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  id              String         @id @default(cuid())
+  fio             String
+  birthYear       Int
+  diagnosis       String
+  attendingDoctor String
+  prescriptions   Prescription[]
+  dispensations   Dispensation[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 model Medicine {
@@ -31,7 +39,7 @@ model Medicine {
   standardizedDosageForm   String
   standardizedDosage       String
   characteristic           String
-  packaging                Float
+  packaging                Int
   price                    Float
   prescriptions            Prescription[]
   dispensations            Dispensation[]
@@ -40,28 +48,28 @@ model Medicine {
 }
 
 model Prescription {
-  id                String       @id @default(cuid())
-  patient           Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  patientId         String
-  medicine          Medicine     @relation(fields: [medicineId], references: [id], onDelete: Cascade)
-  medicineId        String
-  dailyDose         String
-  dailyConsumption  Float
-  annualRequirement Float
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  id                 String   @id @default(cuid())
+  patientId          String
+  medicineId         String
+  dailyDose          String
+  dailyConsumption   Float
+  annualRequirement  Float
+  patient            Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medicine           Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@unique([patientId, medicineId])
 }
 
 model Dispensation {
-  id                String   @id @default(cuid())
-  patient           Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  patientId         String
-  medicine          Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
-  medicineId        String
-  dispensationDate  DateTime
-  quantity          Float
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String   @id @default(cuid())
+  patientId        String
+  medicineId       String
+  dispensationDate DateTime
+  quantity         Int
+  patient          Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medicine         Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

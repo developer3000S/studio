@@ -16,7 +16,7 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
         }
     }, [user, loading, router]);
 
-    if (loading || user) {
+    if (loading || (!loading && user)) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -33,9 +33,9 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
           </div>
           <div className="hidden bg-muted lg:block">
             <Image
-              src="/img/pharmacy.jpg"
+              src="https://placehold.co/1080x1920.png"
               alt="Медицина"
-              width="1080"
+              width="1920"
               height="1080"
               data-ai-hint="modern pharmacy"
               className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"

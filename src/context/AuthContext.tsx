@@ -1,84 +1,107 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
-// Mock user type. Can be expanded if needed.
-interface MockUser {
+interface User {
+  id: string;
   email: string;
-  isDemo: boolean;
 }
 
 interface AuthContextType {
-  user: MockUser | null;
+  user: User | null;
   loading: boolean;
   login: (email: string, pass: string) => Promise<void>;
   signup: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
-  demoLogin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// A mock user for the demo session
-const demoUser: MockUser = {
-    email: 'demo@example.com',
-    isDemo: true,
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<MockUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { toast } = useToast();
 
-  useEffect(() => {
-    // This effect runs only on the client, so `window` is safe to use.
+  const checkAuthStatus = useCallback(async () => {
     try {
-      const item = window.localStorage.getItem('user');
-      if (item) {
-        setUser(JSON.parse(item));
+      const res = await fetch('/api/auth/me');
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else {
+        setUser(null);
       }
     } catch (error) {
-      console.warn("Error reading user from localStorage", error);
       setUser(null);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   }, []);
 
-  const setAndStoreUser = (newUser: MockUser | null) => {
-    setUser(newUser);
-    try {
-        if (newUser) {
-            window.localStorage.setItem('user', JSON.stringify(newUser));
-        } else {
-            window.localStorage.removeItem('user');
-        }
-    } catch (error) {
-        console.warn('Error saving user to localStorage', error);
-    }
-  }
-
-
-  // All auth functions are now simple async functions that set a mock user
-  const login = async (email: string, pass: string) => {
-    // Simulate a network delay
-    await new Promise(res => setTimeout(res, 500));
-    setAndStoreUser({ email, isDemo: false });
-  }
-
-  const signup = async (email: string, pass: string) => {
-    // Simulate a network delay
-    await new Promise(res => setTimeout(res, 500));
-    setAndStoreUser({ email, isDemo: false });
-  }
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
   
-  const demoLogin = async () => {
-    await new Promise(res => setTimeout(res, 500));
-    setAndStoreUser(demoUser);
+  const handleError = (err: any, defaultMessage: string) => {
+    const message = err.message || defaultMessage;
+    toast({
+        title: "Ошибка",
+        description: message,
+        variant: "destructive"
+    });
+    throw new Error(message);
   }
 
+  const login = async (email: string, password: string) => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+      setUser(data);
+      router.push('/dashboard');
+    } catch (err: any) {
+      handleError(err, 'Не удалось войти в систему.');
+    }
+  };
+
+  const signup = async (email: string, password: string) => {
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+      setUser(data);
+      router.push('/dashboard');
+    } catch (err: any) {
+       handleError(err, 'Не удалось зарегистрироваться.');
+    }
+  };
+  
   const logout = async () => {
-    await new Promise(res => setTimeout(res, 500));
-    setAndStoreUser(null);
+    setLoading(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      setUser(null);
+      router.push('/login');
+    } catch (err: any) {
+       handleError(err, 'Не удалось выйти из системы.');
+    } finally {
+      setLoading(false);
+    }
   };
   
   const value = {
@@ -87,7 +110,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     signup,
     logout,
-    demoLogin
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
