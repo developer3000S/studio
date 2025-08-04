@@ -68,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setUser(data);
       router.push('/dashboard');
+      router.refresh();
     } catch (err: any) {
       handleError(err, 'Не удалось войти в систему.');
     }
@@ -86,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setUser(data);
       router.push('/dashboard');
+      router.refresh();
     } catch (err: any) {
        handleError(err, 'Не удалось зарегистрироваться.');
     }
@@ -97,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await fetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
       router.push('/login');
+      router.refresh();
     } catch (err: any) {
        handleError(err, 'Не удалось выйти из системы.');
     } finally {

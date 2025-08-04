@@ -1,9 +1,8 @@
 'use server';
 import { NextResponse } from 'next/server';
-import { deleteCookie } from 'cookies-next';
+import { cookies } from 'next/headers';
 
-export async function POST(request: Request) {
-  const response = NextResponse.json({ message: 'Logged out' }, { status: 200 });
-  deleteCookie('token', { req: request, res: response });
-  return response;
+export async function POST() {
+  cookies().delete('token');
+  return NextResponse.json({ message: 'Logged out' }, { status: 200 });
 }

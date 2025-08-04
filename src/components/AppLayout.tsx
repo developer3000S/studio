@@ -42,7 +42,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/login');
   }
 
   const navItems = [

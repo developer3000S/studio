@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { setCookie } from 'cookies-next';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -30,18 +30,14 @@ export async function POST(request: Request) {
       expiresIn: '7d',
     });
 
-    const response = NextResponse.json({ id: user.id, email: user.email }, { status: 200 });
-
-    setCookie('token', token, {
-      req: request,
-      res: response,
+    cookies().set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24 * 7, // 1 week
       path: '/',
     });
 
-    return response;
+    return NextResponse.json({ id: user.id, email: user.email }, { status: 200 });
 
   } catch (error) {
     if (error instanceof z.ZodError) {
