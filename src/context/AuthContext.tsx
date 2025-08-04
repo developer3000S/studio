@@ -39,7 +39,7 @@ const getInitialUser = (): MockUser | null => {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<MockUser | null>(getInitialUser);
+  const [user, setUser] = useState<MockUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -79,7 +79,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   const demoLogin = async () => {
     setLoading(true);
-    // Simulate a network delay
     await new Promise(res => setTimeout(res, 500));
     setUser(demoUser);
     setLoading(false);

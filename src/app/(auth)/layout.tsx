@@ -16,18 +16,13 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
         }
     }, [user, loading, router]);
 
-    if (loading) {
+    if (loading || user) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <Loader2 className="h-8 w-8 animate-spin" />
             </div>
         )
     }
-
-    if (user) {
-        return null; // или другой лоадер/пустой компонент, пока происходит редирект
-    }
-
 
     return (
         <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
