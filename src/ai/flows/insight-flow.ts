@@ -1,4 +1,3 @@
-'use server';
 /**
  * @fileOverview Flow for generating medical data insights.
  *
