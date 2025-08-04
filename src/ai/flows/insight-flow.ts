@@ -40,7 +40,7 @@ export async function generateInsights(input: InsightInput): Promise<string> {
 // for the data that will be injected.
 const insightPrompt = ai.definePrompt({
   name: 'insightPrompt',
-  model: googleAI.model('gemini-1.5-flash-preview'),
+  model: googleAI.model('gemini-1.5-flash'),
   input: {
     schema: InsightInputSchema,
   },
