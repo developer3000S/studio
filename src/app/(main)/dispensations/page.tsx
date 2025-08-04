@@ -3,10 +3,14 @@ import { PlusCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { columns } from './components/columns';
 import { DispensationDataTable } from './components/data-table';
-import { DispensationForm } from './components/dispensation-form';
 import { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const DispensationForm = dynamic(() => import('./components/dispensation-form').then(mod => mod.DispensationForm), {
+  ssr: false,
+});
 
 export default function DispensationsPage() {
   const { dispensations, patients, medicines, loading } = useAppContext();
@@ -52,7 +56,7 @@ export default function DispensationsPage() {
       ) : (
         <DispensationDataTable columns={columns} data={data} />
       )}
-      <DispensationForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
+      {isFormOpen && <DispensationForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />}
     </div>
   );
 }

@@ -8,10 +8,9 @@ import { useAppContext } from '@/context/AppContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
-import { Bar, Pie, Cell, ResponsiveContainer, BarChart as BarChartComponent, XAxis, YAxis, Tooltip, Legend, PieChart as PieChartComponent } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
-import type { ChartConfig } from '@/components/ui/chart';
+import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { ChartConfig } from '@/components/ui/chart';
 
 function StatCard({ title, value, change, icon: Icon }: { title: string, value: React.ReactNode, change?: string, icon: React.ElementType }) {
   return (
@@ -73,6 +72,30 @@ const dispensationsChartConfig = {
   },
 } satisfies ChartConfig
 
+const DynamicBarChart = dynamic(
+  () => import('recharts').then(mod => mod.BarChart),
+  { ssr: false, loading: () => <div className="flex items-center justify-center h-[250px]"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div> }
+);
+
+const DynamicPieChart = dynamic(
+    () => import('recharts').then(mod => mod.PieChart),
+    { ssr: false, loading: () => <div className="flex items-center justify-center h-[250px]"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div> }
+);
+
+const ChartContainer = dynamic(
+    () => import('@/components/ui/chart').then(mod => mod.ChartContainer),
+    { ssr: false, loading: () => <Skeleton className="h-[250px] w-full" /> }
+);
+const ChartTooltipContent = dynamic(
+    () => import('@/components/ui/chart').then(mod => mod.ChartTooltipContent),
+    { ssr: false }
+);
+const ChartLegendContent = dynamic(
+    () => import('@/components/ui/chart').then(mod => mod.ChartLegendContent),
+    { ssr: false }
+);
+
+import { Bar, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 
 export default function DashboardPage() {
     const { patients, medicines, prescriptions, dispensations, loading } = useAppContext();
@@ -165,12 +188,14 @@ export default function DashboardPage() {
                     </div>
                 ) : (
                   <ChartContainer config={dispensationsChartConfig} className="h-[250px] w-full">
-                      <BarChartComponent data={dispensationsByMonth}>
-                          <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
-                          <YAxis />
-                          <Tooltip cursor={false} content={<ChartTooltipContent />} />
-                          <Bar dataKey="dispensations" radius={4} />
-                      </BarChartComponent>
+                      <ResponsiveContainer>
+                        <DynamicBarChart data={dispensationsByMonth}>
+                            <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                            <YAxis />
+                            <Tooltip cursor={false} content={<ChartTooltipContent />} />
+                            <Bar dataKey="dispensations" radius={4} />
+                        </DynamicBarChart>
+                      </ResponsiveContainer>
                   </ChartContainer>
                   )}
               </CardContent>
@@ -190,7 +215,8 @@ export default function DashboardPage() {
                     </div>
                  ) : (
                   <ChartContainer config={diagnosisChartConfig} className="h-[250px] w-full">
-                      <PieChartComponent>
+                    <ResponsiveContainer>
+                      <DynamicPieChart>
                             <Tooltip content={<ChartTooltipContent nameKey="name" />} />
                             <Legend content={<ChartLegendContent nameKey="name" />} />
                            <Pie data={patientsByDiagnosis} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} label>
@@ -198,7 +224,8 @@ export default function DashboardPage() {
                                     <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                            </Pie>
-                      </PieChartComponent>
+                      </DynamicPieChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 )}
               </CardContent>

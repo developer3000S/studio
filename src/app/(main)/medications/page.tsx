@@ -3,10 +3,14 @@ import { PlusCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { columns } from './components/columns';
 import { MedicationDataTable } from './components/data-table';
-import { MedicationForm } from './components/medication-form';
 import { useState, useEffect } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const MedicationForm = dynamic(() => import('./components/medication-form').then(mod => mod.MedicationForm), {
+  ssr: false,
+});
 
 export default function MedicationsPage() {
   const { medicines, loading } = useAppContext();
@@ -38,7 +42,7 @@ export default function MedicationsPage() {
       ) : (
         <MedicationDataTable columns={columns} data={medicines} />
       )}
-      <MedicationForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
+      {isFormOpen && <MedicationForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />}
     </div>
   );
 }

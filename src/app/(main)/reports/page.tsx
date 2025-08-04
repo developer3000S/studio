@@ -1,11 +1,32 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MedicationsReport } from "./components/medications-report";
-import { PatientsReport } from "./components/patients-report";
-import { PrescriptionsReport } from "./components/prescriptions-report";
-import { FinancialReport } from "./components/financial-report";
-import { DispensationsReport } from "./components/dispensations-report";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const loadingComponent = <div className="mt-2"><Skeleton className="w-full h-[600px] rounded-lg" /></div>;
+
+const MedicationsReport = dynamic(() => import('./components/medications-report').then(mod => mod.MedicationsReport), {
+  ssr: false,
+  loading: () => loadingComponent,
+});
+const PatientsReport = dynamic(() => import('./components/patients-report').then(mod => mod.PatientsReport), {
+  ssr: false,
+  loading: () => loadingComponent,
+});
+const PrescriptionsReport = dynamic(() => import('./components/prescriptions-report').then(mod => mod.PrescriptionsReport), {
+  ssr: false,
+  loading: () => loadingComponent,
+});
+const FinancialReport = dynamic(() => import('./components/financial-report').then(mod => mod.FinancialReport), {
+  ssr: false,
+  loading: () => loadingComponent,
+});
+const DispensationsReport = dynamic(() => import('./components/dispensations-report').then(mod => mod.DispensationsReport), {
+  ssr: false,
+  loading: () => loadingComponent,
+});
+
 
 export default function ReportsPage() {
   return (

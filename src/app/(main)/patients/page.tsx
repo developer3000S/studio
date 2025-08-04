@@ -3,10 +3,14 @@ import { PlusCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { columns } from './components/columns';
 import { PatientDataTable } from './components/data-table';
-import { PatientForm } from './components/patient-form';
 import { useState, useEffect } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const PatientForm = dynamic(() => import('./components/patient-form').then(mod => mod.PatientForm), {
+  ssr: false,
+});
 
 export default function PatientsPage() {
   const { patients, loading } = useAppContext();
@@ -39,7 +43,7 @@ export default function PatientsPage() {
       ) : (
         <PatientDataTable columns={columns} data={patients} />
       )}
-      <PatientForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
+      {isFormOpen && <PatientForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />}
     </div>
   );
 }
