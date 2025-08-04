@@ -36,6 +36,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   
   useEffect(() => {
+    // This effect runs only on the client, so `new Date()` is safe.
     setDate(new Date().toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' }));
   }, []);
 
@@ -116,7 +117,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6">
           <SidebarTrigger className="md:hidden" />
           <div className="flex-1 text-right text-sm text-muted-foreground">
-             {date ? date : <span className="text-transparent">&nbsp;</span>}
+             {date ? <span suppressHydrationWarning>{date}</span> : <span className="text-transparent">&nbsp;</span>}
           </div>
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>

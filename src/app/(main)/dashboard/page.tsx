@@ -7,7 +7,7 @@ import { Users, Pill, ClipboardList, PackageCheck, PlusCircle, Syringe, FilePlus
 import { useAppContext } from '@/context/AppContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Bar, Pie, Cell, ResponsiveContainer, BarChart as BarChartComponent, XAxis, YAxis, Tooltip, Legend, PieChart as PieChartComponent } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
@@ -76,14 +76,23 @@ const dispensationsChartConfig = {
 
 export default function DashboardPage() {
     const { patients, medicines, prescriptions, dispensations, loading } = useAppContext();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const totalPatients = patients.length;
     const activePrescriptions = prescriptions.length;
-    const totalDispensationsThisMonth = dispensations.filter(d => {
-        const date = new Date(d.dispensationDate);
+    
+    const totalDispensationsThisMonth = useMemo(() => {
+        if (!isClient) return 0; // Don't calculate on server or before hydration
         const today = new Date();
-        return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
-    }).length;
+        return dispensations.filter(d => {
+            const date = new Date(d.dispensationDate);
+            return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+        }).length;
+    }, [dispensations, isClient]);
 
     const dispensationsByMonth = useMemo(() => {
         const months = Array.from({ length: 12 }, (_, i) => ({
@@ -134,7 +143,7 @@ export default function DashboardPage() {
                     <StatCard title="Всего пациентов" value={totalPatients} icon={Users} />
                     <StatCard title="Активных препаратов" value={`${medicines.length}`} icon={Pill} />
                     <StatCard title="Активных назначений" value={`${activePrescriptions}`} icon={ClipboardList} />
-                    <StatCard title="Выдач за месяц" value={totalDispensationsThisMonth} icon={PackageCheck} />
+                    <StatCard title="Выдач за месяц" value={isClient ? totalDispensationsThisMonth : <Loader2 className="h-6 w-6 animate-spin" />} icon={PackageCheck} />
                 </>
             )}
         </div>
