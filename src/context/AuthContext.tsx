@@ -25,19 +25,6 @@ const demoUser: MockUser = {
     isDemo: true,
 };
 
-const getInitialUser = (): MockUser | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  try {
-    const item = window.localStorage.getItem('user');
-    return item ? JSON.parse(item) : null;
-  } catch (error) {
-    console.warn("Error reading user from localStorage", error);
-    return null;
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<MockUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,48 +43,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  useEffect(() => {
+  const setAndStoreUser = (newUser: MockUser | null) => {
+    setUser(newUser);
     try {
-      if (user) {
-        window.localStorage.setItem('user', JSON.stringify(user));
-      } else {
-        window.localStorage.removeItem('user');
-      }
+        if (newUser) {
+            window.localStorage.setItem('user', JSON.stringify(newUser));
+        } else {
+            window.localStorage.removeItem('user');
+        }
     } catch (error) {
-      console.warn('Error saving user to localStorage', error);
+        console.warn('Error saving user to localStorage', error);
     }
-  }, [user]);
+  }
 
 
   // All auth functions are now simple async functions that set a mock user
   const login = async (email: string, pass: string) => {
-    setLoading(true);
     // Simulate a network delay
     await new Promise(res => setTimeout(res, 500));
-    setUser({ email, isDemo: false });
-    setLoading(false);
+    setAndStoreUser({ email, isDemo: false });
   }
 
   const signup = async (email: string, pass: string) => {
-    setLoading(true);
     // Simulate a network delay
     await new Promise(res => setTimeout(res, 500));
-    setUser({ email, isDemo: false });
-    setLoading(false);
+    setAndStoreUser({ email, isDemo: false });
   }
   
   const demoLogin = async () => {
-    setLoading(true);
     await new Promise(res => setTimeout(res, 500));
-    setUser(demoUser);
-    setLoading(false);
+    setAndStoreUser(demoUser);
   }
 
   const logout = async () => {
-    setLoading(true);
     await new Promise(res => setTimeout(res, 500));
-    setUser(null);
-    setLoading(false);
+    setAndStoreUser(null);
   };
   
   const value = {
