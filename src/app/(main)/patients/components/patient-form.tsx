@@ -26,7 +26,7 @@ interface PatientFormProps {
 
 const formSchema = z.object({
   fio: z.string().min(1, 'ФИО обязательно'),
-  birthYear: z.coerce.number().min(1900, 'Год рождения должен быть после 1900').max(new Date().getFullYear(), 'Год рождения не может быть в будущем'),
+  birthYear: z.coerce.number().min(1900, 'Год рождения должен быть после 1900').max(2030, 'Год рождения не может быть в будущем'),
   diagnosis: z.string().min(1, 'Диагноз обязателен'),
   attendingDoctor: z.string().min(1, 'Лечащий врач обязателен'),
 });
